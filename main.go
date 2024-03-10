@@ -24,8 +24,10 @@ func initDB() *gorm.DB {
 	}
 
 	database.AutoMigrate(&model.Blog{})
+	database.AutoMigrate(&model.Comment{})
+	database.AutoMigrate(&model.Vote{})
 
-	err = database.AutoMigrate(&model.Blog{})
+	err = database.AutoMigrate(&model.Blog{}, &model.Comment{}, &model.Vote{})
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
@@ -44,14 +46,34 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startServer(blogController *controller.BlogController) {
+func startServer(blogController *controller.BlogController, commentController *controller.CommentController, voteController *controller.VoteController) {
 	router := mux.NewRouter().StrictSlash(true)
 
+	// Blog routes
 	router.HandleFunc("/blogs", blogController.Create).Methods("POST")
 
+	// Comment routes
+	router.HandleFunc("/comments", commentController.Create).Methods("POST")
+	router.HandleFunc("/comments/{id}", commentController.FindById).Methods("GET")
+	router.HandleFunc("/comments/{id}", commentController.Update).Methods("PUT")
+	router.HandleFunc("/comments/{id}", commentController.Delete).Methods("DELETE")
+	router.HandleFunc("/comments", commentController.GetAll).Methods("GET")
+
+	// Vote routes
+	router.HandleFunc("/votes", voteController.Create).Methods("POST")
+	router.HandleFunc("/votes/{id}", voteController.FindById).Methods("GET")
+	router.HandleFunc("/votes/{id}", voteController.Update).Methods("PUT")
+	router.HandleFunc("/votes/{id}", voteController.Delete).Methods("DELETE")
+	router.HandleFunc("/votes", voteController.GetAll).Methods("GET")
+
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+
 	println("Server starting")
-	log.Fatal(http.ListenAndServe(":8090", router))
+
+	go func() {
+		log.Fatal(http.ListenAndServe(":8090", router))
+	}()
+
 }
 
 func main() {
@@ -65,5 +87,14 @@ func main() {
 	blogService := &service.BlogService{BlogRepository: blogRepository}
 	blogController := &controller.BlogController{BlogService: blogService}
 
-	startServer(blogController)
+	commentRepository := &repository.CommentRepository{DatabaseConnection: database}
+	commentService := &service.CommentService{CommentRepo: commentRepository}
+	commentController := &controller.CommentController{CommentService: commentService}
+
+	voteRepository := &repository.VoteRepository{DatabaseConnection: database}
+	voteService := &service.VoteService{VoteRepo: voteRepository}
+	voteController := &controller.VoteController{VoteService: voteService}
+
+	startServer(blogController, commentController, voteController)
+
 }
