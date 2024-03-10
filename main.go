@@ -13,7 +13,7 @@ import (
 
 func initDB() *gorm.DB {
 
-	dsn := "user=postgres password=super dbname=testGolang host=localhost port=5432 sslmode=disable"
+	dsn := "user=postgres password=super dbname=soa-blog host=localhost port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -62,6 +62,5 @@ func main() {
 	// repo := &repo.StudentRepository{DatabaseConnection: database}
 	// service := &service.StudentService{StudentRepo: repo}
 	// handler := &handler.StudentHandler{StudentService: service}
-
 	startServer()
 }
