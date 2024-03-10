@@ -1,8 +1,10 @@
 package main
 
 import (
-	//"BlogApplication/model"
-	//"BlogApplication/repository"
+	"BlogApplication/controller"
+	"BlogApplication/model"
+	"BlogApplication/repository"
+	"BlogApplication/service"
 	"log"
 	"net/http"
 
@@ -21,12 +23,12 @@ func initDB() *gorm.DB {
 		return nil
 	}
 
-	// database.AutoMigrate(&model.Person{})
+	database.AutoMigrate(&model.Blog{})
 
-	// err = database.AutoMigrate(&model.Person{}, &model.Student{})
-	// if err != nil {
-	// 	log.Fatalf("Error migrating models: %v", err)
-	// }
+	err = database.AutoMigrate(&model.Blog{})
+	if err != nil {
+		log.Fatalf("Error migrating models: %v", err)
+	}
 
 	// newStudent := model.Student{
 	// 	Person:     model.Person{Firstname: "John", Lastname: "Doe"},
@@ -42,11 +44,10 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startServer() {
+func startServer(blogController *controller.BlogController) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	// router.HandleFunc("/students/{id}", handler.Get).Methods("GET")
-	// router.HandleFunc("/students", handler.Create).Methods("POST")
+	router.HandleFunc("/blogs", blogController.Create).Methods("POST")
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
@@ -59,8 +60,10 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-	// repo := &repo.StudentRepository{DatabaseConnection: database}
-	// service := &service.StudentService{StudentRepo: repo}
-	// handler := &handler.StudentHandler{StudentService: service}
-	startServer()
+
+	blogRepository := &repository.BlogRepository{DatabaseConnection: database}
+	blogService := &service.BlogService{BlogRepository: blogRepository}
+	blogController := &controller.BlogController{BlogService: blogService}
+
+	startServer(blogController)
 }

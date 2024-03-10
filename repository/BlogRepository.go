@@ -10,17 +10,17 @@ type BlogRepository struct {
 	DatabaseConnection *gorm.DB
 }
 
-func (repo *BlogRepository) FindById(id int64) (model.Blog, error) {
+func (repository *BlogRepository) Find(id int64) (model.Blog, error) {
 	blog := model.Blog{}
-	dbResult := repo.DatabaseConnection.Preload("Comments").Preload("Votes").First(&blog, id)
+	dbResult := repository.DatabaseConnection.Preload("Comments").Preload("Votes").First(&blog, id)
 	if dbResult.Error != nil {
 		return blog, dbResult.Error
 	}
 	return blog, nil
 }
 
-func (repo *BlogRepository) CreateBlog(blog *model.Blog) error {
-	dbResult := repo.DatabaseConnection.Create(blog)
+func (repository *BlogRepository) Create(blog *model.Blog) error {
+	dbResult := repository.DatabaseConnection.Create(blog)
 	if dbResult.Error != nil {
 		return dbResult.Error
 	}
@@ -28,8 +28,8 @@ func (repo *BlogRepository) CreateBlog(blog *model.Blog) error {
 	return nil
 }
 
-func (repo *BlogRepository) UpdateBlog(blog *model.Blog) error {
-	dbResult := repo.DatabaseConnection.Save(blog)
+func (repository *BlogRepository) Update(blog *model.Blog) error {
+	dbResult := repository.DatabaseConnection.Save(blog)
 	if dbResult.Error != nil {
 		return dbResult.Error
 	}
@@ -37,17 +37,17 @@ func (repo *BlogRepository) UpdateBlog(blog *model.Blog) error {
 	return nil
 }
 
-func (repo *BlogRepository) DeleteBlog(id int64) error {
-	dbResult := repo.DatabaseConnection.Delete(&model.Blog{}, id)
+func (repository *BlogRepository) Delete(id int64) error {
+	dbResult := repository.DatabaseConnection.Delete(&model.Blog{}, id)
 	if dbResult.Error != nil {
 		return dbResult.Error
 	}
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-func (repo *BlogRepository) GetAll() ([]model.Blog, error) {
+func (repository *BlogRepository) FindAll() ([]model.Blog, error) {
 	var blogs []model.Blog
-	dbResult := repo.DatabaseConnection.Preload("Comments").Preload("Votes").Find(&blogs)
+	dbResult := repository.DatabaseConnection.Preload("Comments").Preload("Votes").Find(&blogs)
 	if dbResult.Error != nil {
 		return nil, dbResult.Error
 	}
