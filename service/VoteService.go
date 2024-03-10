@@ -12,7 +12,7 @@ type VoteService struct {
 	VoteRepo *repository.VoteRepository
 }
 
-func (service *VoteService) FindVoteById(id int) (*model.Vote, error) {
+func (service *VoteService) FindById(id int) (*model.Vote, error) {
 	vote, err := service.VoteRepo.FindById(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -47,7 +47,7 @@ func (service *VoteService) Delete(id int) error {
 	return nil
 }
 
-func (service *VoteService) GetAllVotes() ([]model.Vote, error) {
+func (service *VoteService) GetAll() ([]model.Vote, error) {
 	votes, err := service.VoteRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error fetching all votes: %w", err)

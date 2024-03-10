@@ -12,7 +12,7 @@ type CommentService struct {
 	CommentRepo *repository.CommentRepository
 }
 
-func (service *CommentService) FindCommentById(id int) (*model.Comment, error) {
+func (service *CommentService) FindById(id int) (*model.Comment, error) {
 	comment, err := service.CommentRepo.FindById(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -47,7 +47,7 @@ func (service *CommentService) Delete(id int) error {
 	return nil
 }
 
-func (service *CommentService) GetAllComments() ([]model.Comment, error) {
+func (service *CommentService) GetAll() ([]model.Comment, error) {
 	comments, err := service.CommentRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error fetching all comments: %w", err)
