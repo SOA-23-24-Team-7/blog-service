@@ -19,7 +19,7 @@ func (repo *CommentRepository) FindById(id int) (model.Comment, error) {
 	return comment, nil
 }
 
-func (repo *CommentRepository) CreateComment(comment *model.Comment) error {
+func (repo *CommentRepository) Create(comment *model.Comment) error {
 	dbResult := repo.DatabaseConnection.Create(comment)
 	if dbResult.Error != nil {
 		return dbResult.Error
@@ -27,7 +27,7 @@ func (repo *CommentRepository) CreateComment(comment *model.Comment) error {
 	return nil
 }
 
-func (repo *CommentRepository) UpdateComment(comment *model.Comment) error {
+func (repo *CommentRepository) Update(comment *model.Comment) error {
 	dbResult := repo.DatabaseConnection.Save(comment)
 	if dbResult.Error != nil {
 		return dbResult.Error
@@ -35,7 +35,7 @@ func (repo *CommentRepository) UpdateComment(comment *model.Comment) error {
 	return nil
 }
 
-func (repo *CommentRepository) DeleteComment(id int) error {
+func (repo *CommentRepository) Delete(id int) error {
 	dbResult := repo.DatabaseConnection.Delete(&model.Comment{}, id)
 	if dbResult.Error != nil {
 		return dbResult.Error
