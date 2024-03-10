@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"time"
 )
 
@@ -21,4 +22,20 @@ func NewComment(authorId, blogId int64, createdAt time.Time, updatedAt *time.Tim
 		UpdatedAt: updatedAt,
 		Text:      text,
 	}, nil
+}
+
+func (c *Comment) Validate() error {
+	if c.AuthorId <= 0 {
+		return errors.New("author ID must be a positive integer")
+	}
+
+	if c.BlogId <= 0 {
+		return errors.New("blog ID must be a positive integer")
+	}
+
+	if c.Text == "" {
+		return errors.New("comment text cannot be empty")
+	}
+
+	return nil
 }
