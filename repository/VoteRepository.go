@@ -19,7 +19,7 @@ func (repo *VoteRepository) FindById(id int) (model.Vote, error) {
 	return vote, nil
 }
 
-func (repo *VoteRepository) CreateVote(vote *model.Vote) error {
+func (repo *VoteRepository) Create(vote *model.Vote) error {
 	dbResult := repo.DatabaseConnection.Create(vote)
 	if dbResult.Error != nil {
 		return dbResult.Error
@@ -27,7 +27,7 @@ func (repo *VoteRepository) CreateVote(vote *model.Vote) error {
 	return nil
 }
 
-func (repo *VoteRepository) UpdateVote(vote *model.Vote) error {
+func (repo *VoteRepository) Update(vote *model.Vote) error {
 	dbResult := repo.DatabaseConnection.Save(vote)
 	if dbResult.Error != nil {
 		return dbResult.Error
@@ -35,7 +35,7 @@ func (repo *VoteRepository) UpdateVote(vote *model.Vote) error {
 	return nil
 }
 
-func (repo *VoteRepository) DeleteVote(id int) error {
+func (repo *VoteRepository) Delete(id int) error {
 	dbResult := repo.DatabaseConnection.Delete(&model.Vote{}, id)
 	if dbResult.Error != nil {
 		return dbResult.Error
