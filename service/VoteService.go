@@ -24,7 +24,11 @@ func (service *VoteService) FindById(id int) (*model.Vote, error) {
 }
 
 func (service *VoteService) Create(vote *model.Vote) error {
-	err := service.VoteRepo.Create(vote)
+	err := vote.Validate()
+	if err != nil {
+		return fmt.Errorf("error validating vote: %w", err)
+	}
+	err = service.VoteRepo.Create(vote)
 	if err != nil {
 		return fmt.Errorf("error creating vote: %w", err)
 	}
@@ -32,7 +36,11 @@ func (service *VoteService) Create(vote *model.Vote) error {
 }
 
 func (service *VoteService) Update(vote *model.Vote) error {
-	err := service.VoteRepo.Update(vote)
+	err := vote.Validate()
+	if err != nil {
+		return fmt.Errorf("error validating vote: %w", err)
+	}
+	err = service.VoteRepo.Update(vote)
 	if err != nil {
 		return fmt.Errorf("error updating vote: %w", err)
 	}

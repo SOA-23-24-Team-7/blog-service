@@ -24,7 +24,12 @@ func (service *CommentService) FindById(id int) (*model.Comment, error) {
 }
 
 func (service *CommentService) Create(comment *model.Comment) error {
-	err := service.CommentRepo.Create(comment)
+
+	err := comment.Validate()
+	if err != nil {
+		return fmt.Errorf("error validating comment: %w", err)
+	}
+	err = service.CommentRepo.Create(comment)
 	if err != nil {
 		return fmt.Errorf("error creating comment: %w", err)
 	}
@@ -32,7 +37,12 @@ func (service *CommentService) Create(comment *model.Comment) error {
 }
 
 func (service *CommentService) Update(comment *model.Comment) error {
-	err := service.CommentRepo.Update(comment)
+
+	err := comment.Validate()
+	if err != nil {
+		return fmt.Errorf("error validating comment: %w", err)
+	}
+	err = service.CommentRepo.Update(comment)
 	if err != nil {
 		return fmt.Errorf("error updating comment: %w", err)
 	}
