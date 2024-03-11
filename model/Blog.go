@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -23,6 +24,7 @@ const (
 )
 
 type Blog struct {
+	Id          int        `json:"id" gorm:"primaryKey"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
 	Date        time.Time  `json:"date"`
@@ -31,10 +33,10 @@ type Blog struct {
 	//ClubId        *int64               `json:"clubId,omitempty"` // Optional club ID
 	//Comments []Comment `json:"comments"`
 	//Votes         []Vote               `json:"votes"`
-	Visibility BlogVisibilityPolicy `json:"visibility"`
-	//VoteCount     int64                `json:"voteCount"`
-	//UpvoteCount   int64                `json:"upvoteCount"`
-	//DownvoteCount int64                `json:"downvoteCount"`
+	Visibility    BlogVisibilityPolicy `json:"visibility"`
+	VoteCount     int64                `json:"voteCount"`
+	UpvoteCount   int64                `json:"upvoteCount"`
+	DownvoteCount int64                `json:"downvoteCount"`
 }
 
 func NewBlog(title string, description string, date time.Time, status BlogStatus, authorId int64, visibility BlogVisibilityPolicy) (*Blog, error) {
@@ -68,4 +70,28 @@ func (b *Blog) calculateVoteCounts() {
 	// 		b.DownvoteCount++
 	// 	}
 	// }
+}
+
+func (b *Blog) Validate() error {
+	if b.Title == "" {
+		return errors.New("Title can't be empty.")
+	}
+
+	if b.Description == "" {
+		return errors.New("Description can't be empty.")
+	}
+
+	if b.Status == "" {
+		return errors.New("Status can't be empty.")
+	}
+
+	if b.Visibility == "" {
+		return errors.New("Visibility can't be empty.")
+	}
+
+	if b.AuthorId < 0 {
+		return errors.New("AuthorId can't be less than 0.")
+	}
+
+	return nil
 }
