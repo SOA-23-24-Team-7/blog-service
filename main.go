@@ -58,7 +58,7 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
 
 	// Comment routes
-	router.HandleFunc("/comments", commentController.Create).Methods("POST")
+	router.HandleFunc("/comments", commentController.Create).Methods("POST") //
 	router.HandleFunc("/comments/{id}", commentController.FindById).Methods("GET")
 	router.HandleFunc("/comments/{id}", commentController.Update).Methods("PUT")
 	router.HandleFunc("/comments/{id}", commentController.Delete).Methods("DELETE")
@@ -75,9 +75,6 @@ func startServer(blogController *controller.BlogController, commentController *c
 
 	println("Server starting")
 
-	// go func() {
-	// 	log.Fatal(http.ListenAndServe(":8090", router))
-	// }()
 	log.Fatal(http.ListenAndServe(":8090", router))
 
 }

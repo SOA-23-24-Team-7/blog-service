@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"BlogApplication/model"
+	"BlogApplication/dto"
 	"BlogApplication/service"
 	"encoding/json"
 	"fmt"
@@ -50,7 +50,7 @@ func (c *CommentController) FindById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *CommentController) Create(w http.ResponseWriter, r *http.Request) {
-	var comment model.Comment
+	var comment dto.CommentRequestDTO
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&comment)
 	if err != nil {
@@ -60,7 +60,7 @@ func (c *CommentController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.CommentService.Create(&comment)
+	createdComment, err := c.CommentService.Create(&comment)
 	if err != nil {
 		log.Printf("Error creating comment: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -68,7 +68,23 @@ func (c *CommentController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	responseDto := dto.CommentResponseDto{
+		ID:        createdComment.Id,
+		AuthorID:  createdComment.AuthorId,
+		BlogID:    createdComment.BlogId,
+		CreatedAt: createdComment.CreatedAt,
+		UpdatedAt: createdComment.UpdatedAt,
+		Text:      createdComment.Text,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	encoder := json.NewEncoder(w)
+	err = encoder.Encode(responseDto)
+	if err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
 }
 
 func (c *CommentController) Update(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +103,7 @@ func (c *CommentController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var comment model.Comment
+	var comment dto.CommentUpdateDto
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&comment)
 	if err != nil {
@@ -96,8 +112,6 @@ func (c *CommentController) Update(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Invalid comment data format")
 		return
 	}
-
-	comment.Id = commentId
 
 	err = c.CommentService.Update(&comment)
 	if err != nil {
@@ -112,7 +126,7 @@ func (c *CommentController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c *CommentController) Delete(w http.ResponseWriter, r *http.Request) {

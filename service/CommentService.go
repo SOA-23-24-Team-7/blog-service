@@ -1,6 +1,7 @@
 package service
 
 import (
+	"BlogApplication/dto"
 	"BlogApplication/model"
 	"BlogApplication/repository"
 	"fmt"
@@ -23,26 +24,30 @@ func (service *CommentService) FindById(id int) (*model.Comment, error) {
 	return &comment, nil
 }
 
-func (service *CommentService) Create(comment *model.Comment) error {
+func (service *CommentService) Create(commentRequest *dto.CommentRequestDTO) (*model.Comment, error) {
+	comment := model.Comment{
+		AuthorId:  commentRequest.AuthorId,
+		BlogId:    commentRequest.BlogId,
+		CreatedAt: commentRequest.CreatedAt,
+		Text:      commentRequest.Text,
+	}
 
 	err := comment.Validate()
 	if err != nil {
-		return fmt.Errorf("error validating comment: %w", err)
+		return nil, fmt.Errorf("error validating comment: %w", err)
 	}
-	err = service.CommentRepo.Create(comment)
+
+	createdComment, err := service.CommentRepo.Create(&comment)
 	if err != nil {
-		return fmt.Errorf("error creating comment: %w", err)
+		return nil, fmt.Errorf("error creating comment: %w", err)
 	}
-	return nil
+
+	return createdComment, nil
 }
 
-func (service *CommentService) Update(comment *model.Comment) error {
+func (service *CommentService) Update(comment *dto.CommentUpdateDto) error {
 
-	err := comment.Validate()
-	if err != nil {
-		return fmt.Errorf("error validating comment: %w", err)
-	}
-	err = service.CommentRepo.Update(comment)
+	err := service.CommentRepo.Update(comment)
 	if err != nil {
 		return fmt.Errorf("error updating comment: %w", err)
 	}
