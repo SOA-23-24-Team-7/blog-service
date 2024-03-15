@@ -33,7 +33,7 @@ func (service *BlogService) Create(blog *model.Blog) error {
 	blog.DownvoteCount = 0
 	blog.UpvoteCount = 0
 	blog.VoteCount = 0
-	blog.Status = "draft"
+	blog.Status = "published"
 	blog.Visibility = "public"
 	err := blog.Validate()
 	if err != nil {
