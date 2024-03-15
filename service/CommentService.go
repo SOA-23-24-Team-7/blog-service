@@ -69,3 +69,12 @@ func (service *CommentService) GetAll() ([]model.Comment, error) {
 	}
 	return comments, nil
 }
+
+func (service *CommentService) GetAllBlogComments(blogID int) ([]model.Comment, error) {
+	var comments []model.Comment
+	err := service.CommentRepo.DatabaseConnection.Where("BlogId = ?", blogID).Find(&comments).Error
+	if err != nil {
+		return nil, fmt.Errorf("error fetching comments for blog ID %d: %w", blogID, err)
+	}
+	return comments, nil
+}
