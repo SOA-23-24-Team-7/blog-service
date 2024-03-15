@@ -89,9 +89,5 @@ func (b *Blog) Validate() error {
 		return errors.New("Visibility can't be empty.")
 	}
 
-	if b.AuthorId < 0 {
-		return errors.New("AuthorId can't be less than 0.")
-	}
-
 	return nil
 }

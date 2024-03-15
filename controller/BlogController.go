@@ -5,6 +5,8 @@ import (
 	"BlogApplication/service"
 	"encoding/json"
 	"fmt"
+	"html"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -52,21 +54,41 @@ func (controller *BlogController) FindAllByAuthor(writer http.ResponseWriter, re
 
 func (controller *BlogController) Create(writer http.ResponseWriter, req *http.Request) {
 	var blog model.Blog
-	err := json.NewDecoder(req.Body).Decode(&blog)
-	if err != nil {
-		println("Error while parsing json")
-		writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
-	err = controller.BlogService.Create(&blog)
-	if err != nil {
-		println("Error while creating a new blog")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
-	}
-	writer.WriteHeader(http.StatusCreated)
-	writer.Header().Set("Content-Type", "application/json")
+    // Read the request body
+    requestBody, err := ioutil.ReadAll(req.Body)
+    if err != nil {
+        fmt.Println("Error reading request body:", err)
+        writer.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+    defer req.Body.Close()
+
+    // Decode HTML entities in the request body
+    decodedBody := html.UnescapeString(string(requestBody))
+
+    // Print the decoded request body
+    fmt.Println("Request Body:", decodedBody)
+
+    // Decode the request body into the 'blog' struct
+    err = json.Unmarshal([]byte(decodedBody), &blog)
+    if err != nil {
+        fmt.Println("Error decoding JSON:", err)
+        writer.WriteHeader(http.StatusBadRequest)
+        return
+    }
+
+    // Your existing code for creating a new blog
+    err = controller.BlogService.Create(&blog)
+    if err != nil {
+        fmt.Println("Error while creating a new blog:", err)
+        writer.WriteHeader(http.StatusExpectationFailed)
+        return
+    }
+
+    // Set the response status code and content type
+    writer.WriteHeader(http.StatusCreated)
+    writer.Header().Set("Content-Type", "application/json")
 }
 
 func (controller *BlogController) Update(writer http.ResponseWriter, req *http.Request) {
