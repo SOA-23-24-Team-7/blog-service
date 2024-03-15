@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"BlogApplication/dto"
 	"BlogApplication/model"
 	"BlogApplication/service"
 	"encoding/json"
@@ -55,40 +56,40 @@ func (controller *BlogController) FindAllByAuthor(writer http.ResponseWriter, re
 func (controller *BlogController) Create(writer http.ResponseWriter, req *http.Request) {
 	var blog model.Blog
 
-    // Read the request body
-    requestBody, err := ioutil.ReadAll(req.Body)
-    if err != nil {
-        fmt.Println("Error reading request body:", err)
-        writer.WriteHeader(http.StatusInternalServerError)
-        return
-    }
-    defer req.Body.Close()
+	// Read the request body
+	requestBody, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println("Error reading request body:", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer req.Body.Close()
 
-    // Decode HTML entities in the request body
-    decodedBody := html.UnescapeString(string(requestBody))
+	// Decode HTML entities in the request body
+	decodedBody := html.UnescapeString(string(requestBody))
 
-    // Print the decoded request body
-    fmt.Println("Request Body:", decodedBody)
+	// Print the decoded request body
+	fmt.Println("Request Body:", decodedBody)
 
-    // Decode the request body into the 'blog' struct
-    err = json.Unmarshal([]byte(decodedBody), &blog)
-    if err != nil {
-        fmt.Println("Error decoding JSON:", err)
-        writer.WriteHeader(http.StatusBadRequest)
-        return
-    }
+	// Decode the request body into the 'blog' struct
+	err = json.Unmarshal([]byte(decodedBody), &blog)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-    // Your existing code for creating a new blog
-    err = controller.BlogService.Create(&blog)
-    if err != nil {
-        fmt.Println("Error while creating a new blog:", err)
-        writer.WriteHeader(http.StatusExpectationFailed)
-        return
-    }
+	// Your existing code for creating a new blog
+	err = controller.BlogService.Create(&blog)
+	if err != nil {
+		fmt.Println("Error while creating a new blog:", err)
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
 
-    // Set the response status code and content type
-    writer.WriteHeader(http.StatusCreated)
-    writer.Header().Set("Content-Type", "application/json")
+	// Set the response status code and content type
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
 }
 
 func (controller *BlogController) Update(writer http.ResponseWriter, req *http.Request) {
@@ -120,4 +121,27 @@ func (controller *BlogController) Delete(writer http.ResponseWriter, req *http.R
 	}
 
 	writer.WriteHeader(http.StatusNoContent)
+}
+
+func (controller *BlogController) Vote(writer http.ResponseWriter, req *http.Request) {
+
+	var voteRequest dto.VoteRequest
+	err := json.NewDecoder(req.Body).Decode(&voteRequest)
+	if err != nil {
+		http.Error(writer, "Error parsing request body", http.StatusBadRequest)
+		return
+	}
+
+	blog, err := controller.BlogService.SetVote(voteRequest.BlogId, voteRequest.UserId, voteRequest.VoteType)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("Error upvoting blog: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(writer).Encode(blog)
+	if err != nil {
+		http.Error(writer, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
 }

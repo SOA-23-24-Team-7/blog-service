@@ -19,9 +19,9 @@ func (service *BlogService) Find(id int64) (*model.Blog, error) {
 	return &blog, nil
 }
 
-func (service *BlogService) FindAllPublished() (*[]model.Blog, error) {
+func (service *BlogService) FindAllPublished() ([]model.Blog, error) {
 	blogs, _ := service.BlogRepository.FindAllPublished()
-	return &blogs, nil
+	return blogs, nil
 }
 
 func (service *BlogService) FindAllByAuthor(id int64) (*[]model.Blog, error) {
@@ -35,6 +35,8 @@ func (service *BlogService) Create(blog *model.Blog) error {
 	blog.VoteCount = 0
 	blog.Status = "published"
 	blog.Visibility = "public"
+	blog.Votes = []model.Vote{}
+	blog.Comments = []model.Comment{}
 	err := blog.Validate()
 	if err != nil {
 		return err
@@ -71,4 +73,23 @@ func (service *BlogService) Delete(id int64) error {
 		return fmt.Errorf("error deleting blog: %w", err)
 	}
 	return nil
+}
+
+func (service *BlogService) SetVote(blogID int64, userID int64, voteType model.VoteType) (*model.Blog, error) {
+	blog, err := service.BlogRepository.Find(blogID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.BlogRepository.SetVote(&blog, userID, voteType)
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.BlogRepository.Update(&blog)
+	if err != nil {
+		return nil, err
+	}
+
+	return &blog, nil
 }

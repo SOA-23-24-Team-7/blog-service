@@ -31,8 +31,8 @@ type Blog struct {
 	Status      BlogStatus `json:"status"`
 	AuthorId    int64      `json:"authorId"`
 	//ClubId        *int64               `json:"clubId,omitempty"` // Optional club ID
-	//Comments []Comment `json:"comments"`
-	//Votes         []Vote               `json:"votes"`
+	Comments      []Comment            `json:"comments"`
+	Votes         []Vote               `json:"votes"`
 	Visibility    BlogVisibilityPolicy `json:"visibility"`
 	VoteCount     int64                `json:"voteCount"`
 	UpvoteCount   int64                `json:"upvoteCount"`
@@ -58,18 +58,18 @@ func NewBlog(title string, description string, date time.Time, status BlogStatus
 }
 
 func (b *Blog) calculateVoteCounts() {
-	//b.VoteCount = 0
-	//b.UpvoteCount = 0
-	//b.DownvoteCount = 0
-	// for _, vote := range b.Votes {
-	// 	if vote.VoteType == "UPVOTE" {
-	// 		b.VoteCount++
-	// 		b.UpvoteCount++
-	// 	} else {
-	// 		b.VoteCount--
-	// 		b.DownvoteCount++
-	// 	}
-	// }
+	b.VoteCount = 0
+	b.UpvoteCount = 0
+	b.DownvoteCount = 0
+	for _, vote := range b.Votes {
+		if vote.VoteType == "UPVOTE" {
+			b.VoteCount++
+			b.UpvoteCount++
+		} else {
+			b.VoteCount--
+			b.DownvoteCount++
+		}
+	}
 }
 
 func (b *Blog) Validate() error {
@@ -90,4 +90,17 @@ func (b *Blog) Validate() error {
 	}
 
 	return nil
+}
+
+func (b *Blog) UpdateBlogStatus() {
+	switch {
+	case b.VoteCount < -2:
+		b.Status = "closed"
+	case b.VoteCount >= 3 && len(b.Comments) >= 3:
+		b.Status = "famous"
+	case b.VoteCount >= 2 && len(b.Comments) >= 2:
+		b.Status = "active"
+	default:
+		b.Status = "published"
+	}
 }

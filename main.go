@@ -46,7 +46,7 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startServer(blogController *controller.BlogController, commentController *controller.CommentController, voteController *controller.VoteController) {
+func startServer(blogController *controller.BlogController, commentController *controller.CommentController) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Blog routes
@@ -57,19 +57,15 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
 	router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
 
+	// Blog vote route
+	router.HandleFunc("/blogs/votes", blogController.Vote).Methods("POST")
+
 	// Comment routes
 	router.HandleFunc("/comments", commentController.Create).Methods("POST")
 	router.HandleFunc("/comments/{id}", commentController.Update).Methods("PUT")
 	router.HandleFunc("/comments/{id}", commentController.Delete).Methods("DELETE")
 	router.HandleFunc("/comments", commentController.GetAll).Methods("GET")
 	router.HandleFunc("/blogComments/{id}", commentController.GetAll).Methods("GET")
-
-	// Vote routes
-	router.HandleFunc("/votes", voteController.Create).Methods("POST")
-	router.HandleFunc("/votes/{id}", voteController.FindById).Methods("GET")
-	router.HandleFunc("/votes/{id}", voteController.Update).Methods("PUT")
-	router.HandleFunc("/votes/{id}", voteController.Delete).Methods("DELETE")
-	router.HandleFunc("/votes", voteController.GetAll).Methods("GET")
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 
@@ -94,10 +90,10 @@ func main() {
 	commentService := &service.CommentService{CommentRepo: commentRepository}
 	commentController := &controller.CommentController{CommentService: commentService}
 
-	voteRepository := &repository.VoteRepository{DatabaseConnection: database}
-	voteService := &service.VoteService{VoteRepo: voteRepository}
-	voteController := &controller.VoteController{VoteService: voteService}
+	// voteRepository := &repository.VoteRepository{DatabaseConnection: database}
+	// voteService := &service.VoteService{VoteRepo: voteRepository}
+	// voteController := &controller.VoteController{VoteService: voteService}
 
-	startServer(blogController, commentController, voteController)
+	startServer(blogController, commentController)
 
 }

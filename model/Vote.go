@@ -12,6 +12,7 @@ const (
 type Vote struct {
 	Id       int      `json:"id"`
 	UserId   int64    `json:"userId"`
+	BlogId   int64    `json:"blogId"`
 	VoteType VoteType `json:"voteType"`
 }
 
