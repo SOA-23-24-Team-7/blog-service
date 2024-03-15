@@ -66,7 +66,7 @@ func (repository *BlogRepository) SetVote(b *model.Blog, userID int64, voteType 
 
 func (repository *BlogRepository) Find(id int64) (model.Blog, error) {
 	blog := model.Blog{}
-	dbResult := repository.DatabaseConnection. /*Preload("Comments").Preload("Votes").*/ First(&blog, id)
+	dbResult := repository.DatabaseConnection. /*Preload("Comments").*/ Preload("Votes").First(&blog, id)
 	println(blog.Title)
 	if dbResult.Error != nil {
 		return blog, dbResult.Error

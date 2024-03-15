@@ -10,7 +10,7 @@ const (
 )
 
 type Vote struct {
-	Id       int      `json:"id"`
+	Id       int      `json:"id" gorm:"primaryKey"`
 	UserId   int64    `json:"userId"`
 	BlogId   int64    `json:"blogId"`
 	VoteType VoteType `json:"voteType"`

@@ -32,7 +32,7 @@ type Blog struct {
 	AuthorId    int64      `json:"authorId"`
 	//ClubId        *int64               `json:"clubId,omitempty"` // Optional club ID
 	Comments      []Comment            `json:"comments"`
-	Votes         []Vote               `json:"votes"`
+	Votes         []Vote               `json:"votes" gorm:"foreignKey:BlogId"`
 	Visibility    BlogVisibilityPolicy `json:"visibility"`
 	VoteCount     int64                `json:"voteCount"`
 	UpvoteCount   int64                `json:"upvoteCount"`
@@ -103,4 +103,31 @@ func (b *Blog) UpdateBlogStatus() {
 	default:
 		b.Status = "published"
 	}
+}
+
+func (b *Blog) SetVote(userID int64, voteType VoteType) error {
+
+	var existingVote *Vote
+	for _, vote := range b.Votes {
+		if vote.UserId == userID {
+			existingVote = &vote
+			break
+		}
+	}
+
+	if existingVote != nil {
+
+		if existingVote.VoteType != voteType {
+			existingVote.VoteType = voteType
+			b.calculateVoteCounts()
+			b.UpdateBlogStatus()
+		}
+		return nil
+	}
+
+	b.Votes = append(b.Votes, Vote{UserId: userID, VoteType: voteType})
+	b.calculateVoteCounts()
+	b.UpdateBlogStatus()
+
+	return nil
 }

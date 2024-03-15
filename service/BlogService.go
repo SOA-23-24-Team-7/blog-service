@@ -81,7 +81,7 @@ func (service *BlogService) SetVote(blogID int64, userID int64, voteType model.V
 		return nil, err
 	}
 
-	err = service.BlogRepository.SetVote(&blog, userID, voteType)
+	err = blog.SetVote(userID, voteType)
 	if err != nil {
 		return nil, err
 	}
