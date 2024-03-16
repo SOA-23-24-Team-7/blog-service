@@ -189,7 +189,6 @@ func (c *CommentController) GetAllBlogComments(w http.ResponseWriter, r *http.Re
 		fmt.Fprintf(w, "Invalid comment Id format")
 		return
 	}
-
 	comments, err := c.CommentService.GetAllBlogComments(blogId)
 	if err != nil {
 		log.Printf("Error fetching comments: %v", err)

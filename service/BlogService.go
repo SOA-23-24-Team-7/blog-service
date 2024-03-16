@@ -93,3 +93,15 @@ func (service *BlogService) SetVote(blogID int64, userID int64, voteType model.V
 
 	return &blog, nil
 }
+
+func (service *BlogService) GetBlogsByTopic(topicType model.BlogTopicType) ([]model.Blog, error) {
+	var blogs []model.Blog
+	err := service.BlogRepository.DatabaseConnection.Preload("Topic").Where("topic.type = ?", topicType).
+		Find(&blogs).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("error fetching blogs with topic type %s: %w", topicType, err)
+	}
+
+	return blogs, nil
+}

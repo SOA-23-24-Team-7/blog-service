@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"html"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -142,6 +143,39 @@ func (controller *BlogController) Vote(writer http.ResponseWriter, req *http.Req
 	err = json.NewEncoder(writer).Encode(blog)
 	if err != nil {
 		http.Error(writer, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+}
+func (c *BlogController) FindAllWithType(w http.ResponseWriter, r *http.Request) {
+
+	topicTypeStr, ok := mux.Vars(r)["type"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Missing required parameter: id")
+		return
+	}
+	topicType, err := model.ParseBlogTopicType(topicTypeStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid blog topic type: %v", err)
+		return
+	}
+	println("TOPIC JE" + topicType)
+	blogs, err := c.BlogService.GetBlogsByTopic(topicType)
+	if err != nil {
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching blogs: %v", err)
+		return
+	}
+
+	println(blogs)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(blogs)
+	if err != nil {
+		log.Printf("Error encoding blog data: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error processing blog data")
 		return
 	}
 }

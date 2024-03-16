@@ -56,6 +56,7 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/blogs/{id}", blogController.FindById).Methods("GET")
 	router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
 	router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
+	router.HandleFunc("/blogs/type", blogController.FindAllWithType).Methods("PUT")
 
 	// Blog vote route
 	router.HandleFunc("/blogs/votes", blogController.Vote).Methods("POST")
@@ -65,7 +66,7 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/comments/{id}", commentController.Update).Methods("PUT")
 	router.HandleFunc("/comments/{id}", commentController.Delete).Methods("DELETE")
 	router.HandleFunc("/comments", commentController.GetAll).Methods("GET")
-	router.HandleFunc("/blogComments/{id}", commentController.GetAll).Methods("GET")
+	router.HandleFunc("/blogComments/{id}", commentController.GetAllBlogComments).Methods("GET")
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 

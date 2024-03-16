@@ -6,6 +6,21 @@ import (
 	"time"
 )
 
+type BlogTopicType string
+
+const (
+	BlogTopicTypeBiking      BlogTopicType = "biking"
+	BlogTopicTypeFood        BlogTopicType = "food"
+	BlogTopicTypeMuseums     BlogTopicType = "museums"
+	BlogTopicTypeNature      BlogTopicType = "nature"
+	BlogTopicTypeCulture     BlogTopicType = "culture"
+	BlogTopicTypeHistory     BlogTopicType = "history"
+	BlogTopicTypeBackpacking BlogTopicType = "backpacking"
+	BlogTopicTypeSoloTravel  BlogTopicType = "soloTravel"
+	BlogTopicTypeAdventure   BlogTopicType = "adventure"
+	BlogTopicTypeArt         BlogTopicType = "art"
+)
+
 type BlogStatus string
 
 const (
@@ -37,6 +52,7 @@ type Blog struct {
 	VoteCount     int64                `json:"voteCount"`
 	UpvoteCount   int64                `json:"upvoteCount"`
 	DownvoteCount int64                `json:"downvoteCount"`
+	BlogTopic     BlogTopicType        `json:"blogTopic"`
 }
 
 func NewBlog(title string, description string, date time.Time, status BlogStatus, authorId int64, visibility BlogVisibilityPolicy) (*Blog, error) {
@@ -74,19 +90,23 @@ func (b *Blog) calculateVoteCounts() {
 
 func (b *Blog) Validate() error {
 	if b.Title == "" {
-		return errors.New("Title can't be empty.")
+		return errors.New("title can't be empty")
 	}
 
 	if b.Description == "" {
-		return errors.New("Description can't be empty.")
+		return errors.New("description can't be empty")
 	}
 
 	if b.Status == "" {
-		return errors.New("Status can't be empty.")
+		return errors.New("status can't be empty")
 	}
 
 	if b.Visibility == "" {
-		return errors.New("Visibility can't be empty.")
+		return errors.New("visibility can't be empty")
+	}
+
+	if _, err := ParseBlogTopicType(string(b.BlogTopic)); err != nil {
+		return fmt.Errorf("invalid blog topic type: %w", err)
 	}
 
 	return nil
@@ -106,28 +126,49 @@ func (b *Blog) UpdateBlogStatus() {
 }
 
 func (b *Blog) SetVote(userID int64, voteType VoteType) error {
-
-	var existingVote *Vote
-	for _, vote := range b.Votes {
+	for i, vote := range b.Votes {
 		if vote.UserId == userID {
-			existingVote = &vote
-			break
-		}
-	}
-
-	if existingVote != nil {
-
-		if existingVote.VoteType != voteType {
-			existingVote.VoteType = voteType
+			if vote.VoteType == voteType {
+				return nil
+			}
+			t := b.Votes[i]
+			b.Votes[i] = Vote{Id: t.Id, UserId: userID, BlogId: int64(b.Id), VoteType: voteType} // Replace vote directly
 			b.calculateVoteCounts()
 			b.UpdateBlogStatus()
+			return nil
 		}
-		return nil
 	}
 
-	b.Votes = append(b.Votes, Vote{UserId: userID, VoteType: voteType})
+	newVote := Vote{UserId: userID, BlogId: int64(b.Id), VoteType: voteType}
+	b.Votes = append(b.Votes, newVote)
 	b.calculateVoteCounts()
 	b.UpdateBlogStatus()
 
 	return nil
+}
+func ParseBlogTopicType(topicTypeStr string) (BlogTopicType, error) {
+	switch topicTypeStr {
+	case string(BlogTopicTypeBiking):
+		return BlogTopicTypeBiking, nil
+	case string(BlogTopicTypeFood):
+		return BlogTopicTypeFood, nil
+	case string(BlogTopicTypeMuseums):
+		return BlogTopicTypeMuseums, nil
+	case string(BlogTopicTypeNature):
+		return BlogTopicTypeNature, nil
+	case string(BlogTopicTypeCulture):
+		return BlogTopicTypeCulture, nil
+	case string(BlogTopicTypeHistory):
+		return BlogTopicTypeHistory, nil
+	case string(BlogTopicTypeBackpacking):
+		return BlogTopicTypeBackpacking, nil
+	case string(BlogTopicTypeSoloTravel):
+		return BlogTopicTypeSoloTravel, nil
+	case string(BlogTopicTypeAdventure):
+		return BlogTopicTypeAdventure, nil
+	case string(BlogTopicTypeArt):
+		return BlogTopicTypeArt, nil
+	default:
+		return "", fmt.Errorf("invalid blog topic type: %s", topicTypeStr)
+	}
 }
