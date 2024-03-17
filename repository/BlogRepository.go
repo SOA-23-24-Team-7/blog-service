@@ -76,7 +76,7 @@ func (repository *BlogRepository) Find(id int64) (model.Blog, error) {
 
 func (repository *BlogRepository) FindAllPublished() ([]model.Blog, error) {
 	var blogs []model.Blog
-	dbResult := repository.DatabaseConnection.Where("status = ?", "published").Find(&blogs)
+	dbResult := repository.DatabaseConnection.Find(&blogs)
 	if dbResult.Error != nil {
 		return nil, dbResult.Error
 	}
