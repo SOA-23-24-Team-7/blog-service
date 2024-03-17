@@ -50,13 +50,13 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Blog routes
+	router.HandleFunc("/blogs/type/{type}", blogController.FindAllWithType).Methods("GET")
 	router.HandleFunc("/blogs", blogController.Create).Methods("POST")
 	router.HandleFunc("/blogs/author/{id}", blogController.FindAllByAuthor).Methods("GET")
 	router.HandleFunc("/blogs/published", blogController.FindAllPublished).Methods("GET")
 	router.HandleFunc("/blogs/{id}", blogController.FindById).Methods("GET")
 	router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
 	router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
-	router.HandleFunc("/blogs/type", blogController.FindAllWithType).Methods("PUT")
 
 	// Blog vote route
 	router.HandleFunc("/blogs/votes", blogController.Vote).Methods("POST")
