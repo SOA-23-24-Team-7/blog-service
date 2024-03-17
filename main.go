@@ -26,27 +26,17 @@ func initDB() *gorm.DB {
 	database.AutoMigrate(&model.Blog{})
 	database.AutoMigrate(&model.Comment{})
 	database.AutoMigrate(&model.Vote{})
+	database.AutoMigrate(&model.Report{})
 
-	err = database.AutoMigrate(&model.Blog{}, &model.Comment{}, &model.Vote{})
+	err = database.AutoMigrate(&model.Blog{}, &model.Comment{}, &model.Vote{}, &model.Report{})
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
 
-	// newStudent := model.Student{
-	// 	Person:     model.Person{Firstname: "John", Lastname: "Doe"},
-	// 	Index:      "123456",
-	// 	Major:      "Computer Science",
-	// 	RandomData: model.RandomData{Years: 22},
-	// }
-
-	// Kada upisemo studenta, GORM ce automatski prvo da kreira Osobu i upise u
-	// tabelu, a zatim Studenta, i to ce uraditi unutar iste transakcije.
-	// database.Create(&newStudent)
-
 	return database
 }
 
-func startServer(blogController *controller.BlogController, commentController *controller.CommentController) {
+func startServer(blogController *controller.BlogController, commentController *controller.CommentController, reportController *controller.ReportController) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Blog routes
@@ -67,6 +57,10 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/comments/{id}", commentController.Delete).Methods("DELETE")
 	router.HandleFunc("/comments", commentController.GetAll).Methods("GET")
 	router.HandleFunc("/blogComments/{id}", commentController.GetAllBlogComments).Methods("GET")
+
+	// Report routes
+	router.HandleFunc("/reports", reportController.Create).Methods("POST")
+	router.HandleFunc("/reports/{id}", reportController.FindAllByBlog).Methods("GET")
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 
@@ -91,10 +85,14 @@ func main() {
 	commentService := &service.CommentService{CommentRepo: commentRepository}
 	commentController := &controller.CommentController{CommentService: commentService}
 
+	reportRepository := &repository.ReportRepository{DatabaseConnection: database}
+	reportService := &service.ReportService{ReportRepository: reportRepository}
+	reportController := &controller.ReportController{ReportService: reportService}
+
 	// voteRepository := &repository.VoteRepository{DatabaseConnection: database}
 	// voteService := &service.VoteService{VoteRepo: voteRepository}
 	// voteController := &controller.VoteController{VoteService: voteService}
 
-	startServer(blogController, commentController)
+	startServer(blogController, commentController, reportController)
 
 }
