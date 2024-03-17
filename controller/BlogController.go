@@ -112,6 +112,18 @@ func (controller *BlogController) Update(writer http.ResponseWriter, req *http.R
 	writer.Header().Set("Content-Type", "application/json")
 }
 
+func (controller *BlogController) Block(writer http.ResponseWriter, req *http.Request) {
+	id, _ := strconv.ParseInt(mux.Vars(req)["id"], 10, 64)
+	err := controller.BlogService.Block(id)
+	if err != nil {
+		println("Error while creating a new blog")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+}
+
 func (controller *BlogController) Delete(writer http.ResponseWriter, req *http.Request) {
 	id, _ := strconv.ParseInt(mux.Vars(req)["id"], 10, 64)
 

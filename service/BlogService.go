@@ -67,6 +67,26 @@ func (service *BlogService) Update(id int64, blog *model.Blog) error {
 	return nil
 }
 
+func (service *BlogService) Block(id int64) error {
+	oldBlog, err := service.BlogRepository.Find(id)
+	if err != nil {
+
+		return fmt.Errorf(fmt.Sprintf("menu item with id %d not found", id))
+	}
+	oldBlog.Visibility = "private"
+	err = oldBlog.Validate()
+	if err != nil {
+		println("lol")
+		return err
+	}
+	err = service.BlogRepository.Update(&oldBlog)
+	if err != nil {
+		println("ok")
+		return err
+	}
+	return nil
+}
+
 func (service *BlogService) Delete(id int64) error {
 	err := service.BlogRepository.Delete(id)
 	if err != nil {

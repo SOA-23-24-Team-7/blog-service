@@ -47,6 +47,7 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/blogs/{id}", blogController.FindById).Methods("GET")
 	router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
 	router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
+	router.HandleFunc("/blogs/{id}", blogController.Block).Methods("PATCH")
 
 	// Blog vote route
 	router.HandleFunc("/blogs/votes", blogController.Vote).Methods("POST")
