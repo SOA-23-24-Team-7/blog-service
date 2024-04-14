@@ -93,7 +93,7 @@ func startServer(blogController *controller.BlogController, commentController *c
 
 	println("Server starting")
 
-	log.Fatal(http.ListenAndServe(":8090", router))
+	log.Fatal(http.ListenAndServe(":8088", router))
 
 }
 
