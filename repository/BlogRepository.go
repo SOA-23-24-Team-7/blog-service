@@ -82,7 +82,7 @@ func (repository *BlogRepository) Find(id int64) (model.Blog, error) {
 }
 
 func (repository *BlogRepository) FindAllPublished() ([]model.Blog, error) {
-	var blogs []model.Blog
+	var blogs = make([]model.Blog, 0)
 	cur, err := repository.Collection.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (repository *BlogRepository) FindAllPublished() ([]model.Blog, error) {
 }
 
 func (repository *BlogRepository) FindAllByAuthor(id int64) ([]model.Blog, error) {
-	var blogs []model.Blog
+	var blogs = make([]model.Blog, 0)
 	cur, err := repository.Collection.Find(context.Background(), bson.M{"authorid": id})
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (repository *BlogRepository) FindAllByAuthor(id int64) ([]model.Blog, error
 }
 
 func (repository *BlogRepository) FindAllByTopic(topicType model.BlogTopicType) ([]model.Blog, error) {
-	var blogs []model.Blog
+	var blogs = make([]model.Blog, 0)
 	cur, err := repository.Collection.Find(context.Background(), bson.M{"blogtopic": topicType})
 	if err != nil {
 		return nil, err

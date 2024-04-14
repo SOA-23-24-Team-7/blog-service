@@ -21,7 +21,7 @@ func NewReportRepository(client *mongo.Client) *ReportRepository {
 }
 
 func (repository *ReportRepository) FindAllByBlog(blogID int64) ([]model.Report, error) {
-	var reports []model.Report
+	var reports  = make([]model.Report, 0)
 	filter := bson.M{"blogid": blogID}
 	cur, err := repository.Collection.Find(context.Background(), filter)
 	if err != nil {

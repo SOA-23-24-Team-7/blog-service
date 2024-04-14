@@ -59,7 +59,7 @@ func (repository *CommentRepository) Delete(id int) error {
 }
 
 func (repository *CommentRepository) GetAll() ([]model.Comment, error) {
-	var comments []model.Comment
+	var comments  = make([]model.Comment, 0)
 	cur, err := repository.Collection.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (repository *CommentRepository) GetAll() ([]model.Comment, error) {
 }
 
 func (repository *CommentRepository) GetAllByBlog(id int64) ([]model.Comment, error) {
-	var comments []model.Comment
+	var comments  = make([]model.Comment, 0)
 	cur, err := repository.Collection.Find(context.Background(), bson.M{"blogid": id})
 	if err != nil {
 		return nil, err
