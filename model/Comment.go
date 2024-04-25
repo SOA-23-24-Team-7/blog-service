@@ -25,10 +25,6 @@ func NewComment(authorId, blogId int64, createdAt time.Time, updatedAt *time.Tim
 }
 
 func (c *Comment) Validate() error {
-	if c.AuthorId <= 0 {
-		return errors.New("author ID must be a positive integer")
-	}
-
 	if c.BlogId <= 0 {
 		return errors.New("blog ID must be a positive integer")
 	}

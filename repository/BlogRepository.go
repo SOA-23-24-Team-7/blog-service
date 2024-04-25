@@ -2,30 +2,38 @@ package repository
 
 import (
 	"BlogApplication/model"
+	"context"
 	"fmt"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type BlogRepository struct {
-	DatabaseConnection *gorm.DB
+	Collection *mongo.Collection
+}
+
+func NewBlogRepository(client *mongo.Client) *BlogRepository {
+	database := client.Database("soa")
+	collection := database.Collection("blogs")
+	return &BlogRepository{
+		Collection: collection,
+	}
 }
 
 func (repository *BlogRepository) Delete(id int64) error {
-	dbResult := repository.DatabaseConnection.Delete(&model.Blog{}, id)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	_, err := repository.Collection.DeleteOne(context.Background(), bson.M{"id": id})
+	if err != nil {
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
 func (repository *BlogRepository) UpdateVotes(blogID int, votes *[]model.Vote) error {
-	err := repository.DatabaseConnection.Model(&model.Blog{}).
-		Where("id = ?", blogID).
-		Update("votes", votes).
-		Error
+	filter := bson.M{"id": blogID}
+	update := bson.M{"$set": bson.M{"votes": votes}}
+	_, err := repository.Collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
-		return fmt.Errorf("error updating votes: %w", err)
+		return err
 	}
 	return nil
 }
@@ -65,48 +73,96 @@ func (repository *BlogRepository) SetVote(b *model.Blog, userID int64, voteType 
 }
 
 func (repository *BlogRepository) Find(id int64) (model.Blog, error) {
-	blog := model.Blog{}
-	dbResult := repository.DatabaseConnection. /*Preload("Comments").*/ Preload("Votes").First(&blog, id)
-	println(blog.Title)
-	if dbResult.Error != nil {
-		return blog, dbResult.Error
+	var blog model.Blog
+	err := repository.Collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&blog)
+	if err != nil {
+		return model.Blog{}, err
 	}
 	return blog, nil
 }
 
 func (repository *BlogRepository) FindAllPublished() ([]model.Blog, error) {
-	var blogs []model.Blog
-	dbResult := repository.DatabaseConnection.Find(&blogs)
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
+	var blogs = make([]model.Blog, 0)
+	cur, err := repository.Collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var blog model.Blog
+		err := cur.Decode(&blog)
+		if err != nil {
+			return nil, err
+		}
+		blogs = append(blogs, blog)
 	}
 	return blogs, nil
 }
 
 func (repository *BlogRepository) FindAllByAuthor(id int64) ([]model.Blog, error) {
-	var blogs []model.Blog
-	dbResult := repository.DatabaseConnection.Where("author_id = ?", id).Find(&blogs)
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
+	var blogs = make([]model.Blog, 0)
+	cur, err := repository.Collection.Find(context.Background(), bson.M{"authorid": id})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var blog model.Blog
+		err := cur.Decode(&blog)
+		if err != nil {
+			return nil, err
+		}
+		blogs = append(blogs, blog)
+	}
+	return blogs, nil
+}
+
+func (repository *BlogRepository) FindAllByTopic(topicType model.BlogTopicType) ([]model.Blog, error) {
+	var blogs = make([]model.Blog, 0)
+	cur, err := repository.Collection.Find(context.Background(), bson.M{"blogtopic": topicType})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var blog model.Blog
+		err := cur.Decode(&blog)
+		if err != nil {
+			return nil, err
+		}
+		blogs = append(blogs, blog)
 	}
 	return blogs, nil
 }
 
 func (repository *BlogRepository) Create(blog *model.Blog) error {
-	dbResult := repository.DatabaseConnection.Create(blog)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	blog.Id = repository.NextId()
+	_, err := repository.Collection.InsertOne(context.Background(), blog)
+	if err != nil {
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
 
 func (repository *BlogRepository) Update(blog *model.Blog) error {
-	dbResult := repository.DatabaseConnection.Save(blog)
-	println(blog)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	filter := bson.M{"id": blog.Id}
+	update := bson.M{"$set": blog}
+	_, err := repository.Collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
+}
+
+func (repository *BlogRepository) NextId() int {
+	blogs, _ := repository.FindAllPublished()
+
+	maxId := 0
+	for _, blog := range blogs {
+		if blog.Id > maxId {
+			maxId = blog.Id
+		}
+	}
+
+	return maxId + 1
 }

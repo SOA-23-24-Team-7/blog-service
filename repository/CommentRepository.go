@@ -3,70 +3,109 @@ package repository
 import (
 	"BlogApplication/dto"
 	"BlogApplication/model"
-	"fmt"
+	"context"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CommentRepository struct {
-	DatabaseConnection *gorm.DB
+	Collection *mongo.Collection
 }
 
-func (repo *CommentRepository) FindById(id int) (model.Comment, error) {
-	comment := model.Comment{}
-	dbResult := repo.DatabaseConnection.First(&comment, id)
-	if dbResult.Error != nil {
-		return comment, dbResult.Error
+func NewCommentRepository(client *mongo.Client) *CommentRepository {
+	database := client.Database("soa")
+	collection := database.Collection("comments")
+	return &CommentRepository{
+		Collection: collection,
+	}
+}
+
+func (repository *CommentRepository) FindById(id int) (model.Comment, error) {
+	var comment model.Comment
+	err := repository.Collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&comment)
+	if err != nil {
+		return model.Comment{}, err
 	}
 	return comment, nil
 }
 
-func (repo *CommentRepository) Create(comment *model.Comment) (*model.Comment, error) {
-	dbResult := repo.DatabaseConnection.Create(comment)
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
-	}
-
-	var createdComment model.Comment
-	err := repo.DatabaseConnection.Where("id = ?", comment.Id).First(&createdComment).Error
+func (repository *CommentRepository) Create(comment *model.Comment) (*model.Comment, error) {
+	comment.Id = repository.NextId()
+	_, err := repository.Collection.InsertOne(context.Background(), comment)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching created comment: %w", err)
+		return nil, err
 	}
-
-	return &createdComment, nil
+	return comment, nil
 }
 
-func (repo *CommentRepository) Update(commentUpdate *dto.CommentUpdateDto) error {
-
-	var comment model.Comment
-	err := repo.DatabaseConnection.Where("id = ?", commentUpdate.ID).First(&comment).Error
+func (repository *CommentRepository) Update(commentUpdate *dto.CommentUpdateDto) error {
+	filter := bson.M{"id": commentUpdate.ID}
+	update := bson.M{"$set": bson.M{"text": commentUpdate.Text}}
+	_, err := repository.Collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
-		return fmt.Errorf("error finding comment with ID %d: %w", commentUpdate.ID, err)
-	}
-
-	comment.Text = commentUpdate.Text
-
-	dbResult := repo.DatabaseConnection.Save(&comment)
-	if dbResult.Error != nil {
-		return fmt.Errorf("error saving updated comment: %w", dbResult.Error)
-	}
-
-	return nil
-}
-
-func (repo *CommentRepository) Delete(id int) error {
-	dbResult := repo.DatabaseConnection.Delete(&model.Comment{}, id)
-	if dbResult.Error != nil {
-		return dbResult.Error
+		return err
 	}
 	return nil
 }
 
-func (repo *CommentRepository) GetAll() ([]model.Comment, error) {
-	var comments []model.Comment
-	dbResult := repo.DatabaseConnection.Find(&comments)
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
+func (repository *CommentRepository) Delete(id int) error {
+	filter := bson.M{"id": id}
+	_, err := repository.Collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repository *CommentRepository) GetAll() ([]model.Comment, error) {
+	var comments  = make([]model.Comment, 0)
+	cur, err := repository.Collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var comment model.Comment
+		err := cur.Decode(&comment)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, comment)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
 	}
 	return comments, nil
+}
+
+func (repository *CommentRepository) GetAllByBlog(id int64) ([]model.Comment, error) {
+	var comments  = make([]model.Comment, 0)
+	cur, err := repository.Collection.Find(context.Background(), bson.M{"blogid": id})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var comment model.Comment
+		err := cur.Decode(&comment)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, comment)
+	}
+	return comments, nil
+}
+
+func (repository *CommentRepository) NextId() int {
+	comments, _ := repository.GetAll()
+
+	maxId := 0
+	for _, comment := range comments {
+		if comment.Id > maxId {
+			maxId = comment.Id
+		}
+	}
+
+	return maxId + 1
 }

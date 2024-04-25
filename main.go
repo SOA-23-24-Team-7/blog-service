@@ -2,38 +2,64 @@ package main
 
 import (
 	"BlogApplication/controller"
-	"BlogApplication/model"
 	"BlogApplication/repository"
 	"BlogApplication/service"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+
+	"context"
+	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func initDB() *gorm.DB {
+// func initDB() *gorm.DB {
 
-	dsn := "user=postgres password=super dbname=soa-blog host=blog-database port=5432 sslmode=disable"
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+// 	dsn := "user=postgres password=super dbname=soa-blog host=blog-database port=5432 sslmode=disable"
+// 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
+// 	if err != nil {
+// 		print(err)
+// 		return nil
+// 	}
+
+// 	database.AutoMigrate(&model.Blog{})
+// 	database.AutoMigrate(&model.Comment{})
+// 	database.AutoMigrate(&model.Vote{})
+// 	database.AutoMigrate(&model.Report{})
+
+// 	err = database.AutoMigrate(&model.Blog{}, &model.Comment{}, &model.Vote{}, &model.Report{})
+// 	if err != nil {
+// 		log.Fatalf("Error migrating models: %v", err)
+// 	}
+
+// 	return database
+// }
+
+func initDB() *mongo.Client {
+	// Set up MongoDB connection options
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Connect to MongoDB
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://blog-database:27017"))
 	if err != nil {
-		print(err)
 		return nil
 	}
 
-	database.AutoMigrate(&model.Blog{})
-	database.AutoMigrate(&model.Comment{})
-	database.AutoMigrate(&model.Vote{})
-	database.AutoMigrate(&model.Report{})
-
-	err = database.AutoMigrate(&model.Blog{}, &model.Comment{}, &model.Vote{}, &model.Report{})
+	// Check the connection
+	err = client.Ping(context.Background(), nil)
 	if err != nil {
-		log.Fatalf("Error migrating models: %v", err)
+		log.Fatal(err)
+		return nil
 	}
 
-	return database
+	println("Connected to MongoDB!")
+
+	return client
 }
 
 func startServer(blogController *controller.BlogController, commentController *controller.CommentController, reportController *controller.ReportController) {
@@ -59,7 +85,7 @@ func startServer(blogController *controller.BlogController, commentController *c
 	router.HandleFunc("/comments", commentController.GetAll).Methods("GET")
 	router.HandleFunc("/blogComments/{id}", commentController.GetAllBlogComments).Methods("GET")
 
-	// Report routes
+	// // Report routes
 	router.HandleFunc("/reports", reportController.Create).Methods("POST")
 	router.HandleFunc("/reports/{id}", reportController.FindAllByBlog).Methods("GET")
 
@@ -67,26 +93,26 @@ func startServer(blogController *controller.BlogController, commentController *c
 
 	println("Server starting")
 
-	log.Fatal(http.ListenAndServe(":8090", router))
+	log.Fatal(http.ListenAndServe(":8088", router))
 
 }
 
 func main() {
-	database := initDB()
-	if database == nil {
+	client := initDB()
+	if client == nil {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
 
-	blogRepository := &repository.BlogRepository{DatabaseConnection: database}
+	blogRepository := repository.NewBlogRepository(client)
 	blogService := &service.BlogService{BlogRepository: blogRepository}
 	blogController := &controller.BlogController{BlogService: blogService}
 
-	commentRepository := &repository.CommentRepository{DatabaseConnection: database}
+	commentRepository := repository.NewCommentRepository(client)
 	commentService := &service.CommentService{CommentRepo: commentRepository}
 	commentController := &controller.CommentController{CommentService: commentService}
 
-	reportRepository := &repository.ReportRepository{DatabaseConnection: database}
+	reportRepository := repository.NewReportRepository(client)
 	reportService := &service.ReportService{ReportRepository: reportRepository}
 	reportController := &controller.ReportController{ReportService: reportService}
 
