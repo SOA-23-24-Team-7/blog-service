@@ -1,19 +1,22 @@
 package main
 
 import (
-	"BlogApplication/controller"
+	//"BlogApplication/controller"
 	"BlogApplication/repository"
+	"BlogApplication/server"
 	"BlogApplication/service"
 	"log"
-	"net/http"
-
-	"github.com/gorilla/mux"
+	"net"
 
 	"context"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"google.golang.org/grpc"
+
+	"google.golang.org/grpc/reflection"
 )
 
 // func initDB() *gorm.DB {
@@ -40,17 +43,14 @@ import (
 // }
 
 func initDB() *mongo.Client {
-	// Set up MongoDB connection options
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Connect to MongoDB
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://blog-database:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		return nil
 	}
 
-	// Check the connection
 	err = client.Ping(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
@@ -62,8 +62,8 @@ func initDB() *mongo.Client {
 	return client
 }
 
-func startServer(blogController *controller.BlogController, commentController *controller.CommentController, reportController *controller.ReportController) {
-	router := mux.NewRouter().StrictSlash(true)
+func startServer(blogService *service.BlogService, commentService *service.CommentService, reportService *service.ReportService /*blogController *controller.BlogController, commentController *controller.CommentController, reportController *controller.ReportController*/) {
+	/*router := mux.NewRouter().StrictSlash(true)
 
 	// Blog routes
 	router.HandleFunc("/blogs/type/{type}", blogController.FindAllWithType).Methods("GET")
@@ -93,7 +93,29 @@ func startServer(blogController *controller.BlogController, commentController *c
 
 	println("Server starting")
 
-	log.Fatal(http.ListenAndServe(":8088", router))
+	log.Fatal(http.ListenAndServe(":8088", router))*/
+
+	//-----------------------------
+
+	grpcServer := grpc.NewServer()
+
+	reflection.Register(grpcServer)
+
+	server.RegisterServerServer(grpcServer, &server.Server{
+		BlogService:    blogService,
+		CommentService: commentService,
+		ReportService:  reportService,
+	})
+
+	listener, err := net.Listen("tcp", ":8088")
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+
+	log.Println("gRPC server listening on port :8088")
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Fatalf("Failed to serve gRPC server: %v", err)
+	}
 
 }
 
@@ -106,20 +128,21 @@ func main() {
 
 	blogRepository := repository.NewBlogRepository(client)
 	blogService := &service.BlogService{BlogRepository: blogRepository}
-	blogController := &controller.BlogController{BlogService: blogService}
+	//blogController := &controller.BlogController{BlogService: blogService}
 
 	commentRepository := repository.NewCommentRepository(client)
 	commentService := &service.CommentService{CommentRepo: commentRepository}
-	commentController := &controller.CommentController{CommentService: commentService}
+	//commentController := &controller.CommentController{CommentService: commentService}
 
 	reportRepository := repository.NewReportRepository(client)
 	reportService := &service.ReportService{ReportRepository: reportRepository}
-	reportController := &controller.ReportController{ReportService: reportService}
+	//reportController := &controller.ReportController{ReportService: reportService}
 
 	// voteRepository := &repository.VoteRepository{DatabaseConnection: database}
 	// voteService := &service.VoteService{VoteRepo: voteRepository}
 	// voteController := &controller.VoteController{VoteService: voteService}
 
-	startServer(blogController, commentController, reportController)
+	startServer(blogService, commentService, reportService /*blogController, commentController, reportController*/)
 
+	select {}
 }

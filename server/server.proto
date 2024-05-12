@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package server;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = ".";
+
+service Server {
+    rpc FindBlogById(BlogIdRequest) returns (BlogResponse) {}
+    rpc CreateBlog(BlogCreationRequest) returns (StringMessage) {}
+}
+
+message StringMessage {
+    string message = 1;
+}
+
+message BlogIdRequest {
+    int64 id = 1;
+}
+
+message BlogResponse {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    google.protobuf.Timestamp date = 4;
+    string status = 5;
+    int64 author_id = 6;
+    repeated CommentResponse comments = 7;
+    repeated VoteResponse votes = 8;
+    string visibility = 9;
+    int64 vote_count = 10;
+    int64 upvote_count = 11;
+    int64 downvote_count = 12;
+    string blog_topic = 13;
+}
+
+message CommentResponse {
+    int32 id = 1;
+    int64 author_id = 2;
+    int64 blog_id = 3;
+    google.protobuf.Timestamp created_at = 4;
+    google.protobuf.Timestamp updated_at = 5;
+    string text = 6;
+}
+
+message VoteResponse {
+    int32 id = 1;
+    int64 user_id = 2;
+    int64 blog_id = 3;
+    string vote_type = 4;
+}
+
+message BlogCreationRequest {
+    string title = 1;
+    string description = 2;
+    int64 author_id = 3;
+    string blog_topic = 4;
+}
