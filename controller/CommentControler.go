@@ -145,7 +145,7 @@ func (c *CommentController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.CommentService.Delete(commentId)
+	err = c.CommentService.Delete(int64(commentId))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			w.WriteHeader(http.StatusNotFound)
@@ -189,7 +189,7 @@ func (c *CommentController) GetAllBlogComments(w http.ResponseWriter, r *http.Re
 		fmt.Fprintf(w, "Invalid comment Id format")
 		return
 	}
-	comments, err := c.CommentService.GetAllBlogComments(blogId)
+	comments, err := c.CommentService.GetAllBlogComments(int64(blogId))
 	if err != nil {
 		log.Printf("Error fetching comments: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

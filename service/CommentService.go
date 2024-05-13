@@ -54,8 +54,8 @@ func (service *CommentService) Update(comment *dto.CommentUpdateDto) error {
 	return nil
 }
 
-func (service *CommentService) Delete(id int) error {
-	err := service.CommentRepo.Delete(id)
+func (service *CommentService) Delete(id int64) error {
+	err := service.CommentRepo.Delete(int64(id))
 	if err != nil {
 		return fmt.Errorf("error deleting comment: %w", err)
 	}
@@ -70,7 +70,7 @@ func (service *CommentService) GetAll() ([]model.Comment, error) {
 	return comments, nil
 }
 
-func (service *CommentService) GetAllBlogComments(blogID int) ([]model.Comment, error) {
+func (service *CommentService) GetAllBlogComments(blogID int64) ([]model.Comment, error) {
 	comments, err := service.CommentRepo.GetAllByBlog(int64(blogID))
 	if err != nil {
 		return nil, fmt.Errorf("error fetching comments for blog ID %d: %w", blogID, err)

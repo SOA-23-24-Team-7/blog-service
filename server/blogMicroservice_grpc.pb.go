@@ -19,8 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BlogMicroservice_FindBlogById_FullMethodName = "/server.BlogMicroservice/FindBlogById"
-	BlogMicroservice_CreateBlog_FullMethodName   = "/server.BlogMicroservice/CreateBlog"
+	BlogMicroservice_FindBlogById_FullMethodName       = "/server.BlogMicroservice/FindBlogById"
+	BlogMicroservice_CreateBlog_FullMethodName         = "/server.BlogMicroservice/CreateBlog"
+	BlogMicroservice_CreateComment_FullMethodName      = "/server.BlogMicroservice/CreateComment"
+	BlogMicroservice_UpdateComment_FullMethodName      = "/server.BlogMicroservice/UpdateComment"
+	BlogMicroservice_DeleteComment_FullMethodName      = "/server.BlogMicroservice/DeleteComment"
+	BlogMicroservice_GetAllComments_FullMethodName     = "/server.BlogMicroservice/GetAllComments"
+	BlogMicroservice_GetAllBlogComments_FullMethodName = "/server.BlogMicroservice/GetAllBlogComments"
 )
 
 // BlogMicroserviceClient is the client API for BlogMicroservice service.
@@ -29,6 +34,11 @@ const (
 type BlogMicroserviceClient interface {
 	FindBlogById(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*BlogResponse, error)
 	CreateBlog(ctx context.Context, in *BlogCreationRequest, opts ...grpc.CallOption) (*StringMessage, error)
+	CreateComment(ctx context.Context, in *CommentCreationRequest, opts ...grpc.CallOption) (*CommentResponse, error)
+	UpdateComment(ctx context.Context, in *CommentUpdateRequest, opts ...grpc.CallOption) (*StringMessage, error)
+	DeleteComment(ctx context.Context, in *CommentIdRequest, opts ...grpc.CallOption) (*StringMessage, error)
+	GetAllComments(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CommentListResponse, error)
+	GetAllBlogComments(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*CommentListResponse, error)
 }
 
 type blogMicroserviceClient struct {
@@ -57,12 +67,62 @@ func (c *blogMicroserviceClient) CreateBlog(ctx context.Context, in *BlogCreatio
 	return out, nil
 }
 
+func (c *blogMicroserviceClient) CreateComment(ctx context.Context, in *CommentCreationRequest, opts ...grpc.CallOption) (*CommentResponse, error) {
+	out := new(CommentResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_CreateComment_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) UpdateComment(ctx context.Context, in *CommentUpdateRequest, opts ...grpc.CallOption) (*StringMessage, error) {
+	out := new(StringMessage)
+	err := c.cc.Invoke(ctx, BlogMicroservice_UpdateComment_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) DeleteComment(ctx context.Context, in *CommentIdRequest, opts ...grpc.CallOption) (*StringMessage, error) {
+	out := new(StringMessage)
+	err := c.cc.Invoke(ctx, BlogMicroservice_DeleteComment_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) GetAllComments(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CommentListResponse, error) {
+	out := new(CommentListResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_GetAllComments_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) GetAllBlogComments(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*CommentListResponse, error) {
+	out := new(CommentListResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_GetAllBlogComments_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogMicroserviceServer is the server API for BlogMicroservice service.
 // All implementations must embed UnimplementedBlogMicroserviceServer
 // for forward compatibility
 type BlogMicroserviceServer interface {
 	FindBlogById(context.Context, *BlogIdRequest) (*BlogResponse, error)
 	CreateBlog(context.Context, *BlogCreationRequest) (*StringMessage, error)
+	CreateComment(context.Context, *CommentCreationRequest) (*CommentResponse, error)
+	UpdateComment(context.Context, *CommentUpdateRequest) (*StringMessage, error)
+	DeleteComment(context.Context, *CommentIdRequest) (*StringMessage, error)
+	GetAllComments(context.Context, *Empty) (*CommentListResponse, error)
+	GetAllBlogComments(context.Context, *BlogIdRequest) (*CommentListResponse, error)
 	mustEmbedUnimplementedBlogMicroserviceServer()
 }
 
@@ -75,6 +135,21 @@ func (UnimplementedBlogMicroserviceServer) FindBlogById(context.Context, *BlogId
 }
 func (UnimplementedBlogMicroserviceServer) CreateBlog(context.Context, *BlogCreationRequest) (*StringMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBlog not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) CreateComment(context.Context, *CommentCreationRequest) (*CommentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) UpdateComment(context.Context, *CommentUpdateRequest) (*StringMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateComment not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) DeleteComment(context.Context, *CommentIdRequest) (*StringMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteComment not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) GetAllComments(context.Context, *Empty) (*CommentListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllComments not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) GetAllBlogComments(context.Context, *BlogIdRequest) (*CommentListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllBlogComments not implemented")
 }
 func (UnimplementedBlogMicroserviceServer) mustEmbedUnimplementedBlogMicroserviceServer() {}
 
@@ -125,11 +200,101 @@ func _BlogMicroservice_CreateBlog_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogMicroservice_CreateComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommentCreationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).CreateComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_CreateComment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).CreateComment(ctx, req.(*CommentCreationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_UpdateComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommentUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).UpdateComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_UpdateComment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).UpdateComment(ctx, req.(*CommentUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_DeleteComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommentIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).DeleteComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_DeleteComment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).DeleteComment(ctx, req.(*CommentIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_GetAllComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).GetAllComments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_GetAllComments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).GetAllComments(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_GetAllBlogComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlogIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).GetAllBlogComments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_GetAllBlogComments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).GetAllBlogComments(ctx, req.(*BlogIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogMicroservice_ServiceDesc is the grpc.ServiceDesc for BlogMicroservice service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "BlogMicroservice",
+	ServiceName: "server.BlogMicroservice",
 	HandlerType: (*BlogMicroserviceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -139,6 +304,26 @@ var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateBlog",
 			Handler:    _BlogMicroservice_CreateBlog_Handler,
+		},
+		{
+			MethodName: "CreateComment",
+			Handler:    _BlogMicroservice_CreateComment_Handler,
+		},
+		{
+			MethodName: "UpdateComment",
+			Handler:    _BlogMicroservice_UpdateComment_Handler,
+		},
+		{
+			MethodName: "DeleteComment",
+			Handler:    _BlogMicroservice_DeleteComment_Handler,
+		},
+		{
+			MethodName: "GetAllComments",
+			Handler:    _BlogMicroservice_GetAllComments_Handler,
+		},
+		{
+			MethodName: "GetAllBlogComments",
+			Handler:    _BlogMicroservice_GetAllBlogComments_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
