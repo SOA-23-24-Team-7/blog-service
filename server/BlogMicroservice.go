@@ -9,14 +9,14 @@ import (
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type Server struct {
-	UnimplementedServerServer
+type BlogMicroservice struct {
+	UnimplementedBlogMicroserviceServer
 	BlogService    *service.BlogService
 	CommentService *service.CommentService
 	ReportService  *service.ReportService
 }
 
-func (s *Server) FindBlogById(ctx context.Context, req *BlogIdRequest) (*BlogResponse, error) {
+func (s *BlogMicroservice) FindBlogById(ctx context.Context, req *BlogIdRequest) (*BlogResponse, error) {
 	blog, err := s.BlogService.Find(req.Id)
 
 	var comments []*CommentResponse
@@ -64,7 +64,7 @@ func (s *Server) FindBlogById(ctx context.Context, req *BlogIdRequest) (*BlogRes
 	}, err
 }
 
-func (s *Server) CreateBlog(ctx context.Context, in *BlogCreationRequest) (*StringMessage, error) {
+func (s *BlogMicroservice) CreateBlog(ctx context.Context, in *BlogCreationRequest) (*StringMessage, error) {
 	blog := &model.Blog{
 		Title:       in.Title,
 		Description: in.Description,

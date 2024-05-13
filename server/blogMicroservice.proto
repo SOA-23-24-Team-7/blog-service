@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = ".";
 
-service Server {
+service BlogMicroservice {
     rpc FindBlogById(BlogIdRequest) returns (BlogResponse) {}
     rpc CreateBlog(BlogCreationRequest) returns (StringMessage) {}
 }

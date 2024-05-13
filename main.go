@@ -101,7 +101,7 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 
 	reflection.Register(grpcServer)
 
-	server.RegisterServerServer(grpcServer, &server.Server{
+	server.RegisterBlogMicroserviceServer(grpcServer, &server.BlogMicroservice{
 		BlogService:    blogService,
 		CommentService: commentService,
 		ReportService:  reportService,
