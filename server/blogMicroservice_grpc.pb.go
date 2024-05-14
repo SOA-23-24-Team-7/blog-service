@@ -21,11 +21,18 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	BlogMicroservice_FindBlogById_FullMethodName       = "/server.BlogMicroservice/FindBlogById"
 	BlogMicroservice_CreateBlog_FullMethodName         = "/server.BlogMicroservice/CreateBlog"
+	BlogMicroservice_FindBlogsByType_FullMethodName    = "/server.BlogMicroservice/FindBlogsByType"
+	BlogMicroservice_FindPublishedBlogs_FullMethodName = "/server.BlogMicroservice/FindPublishedBlogs"
+	BlogMicroservice_FindBlogsByAuthor_FullMethodName  = "/server.BlogMicroservice/FindBlogsByAuthor"
+	BlogMicroservice_DeleteBlog_FullMethodName         = "/server.BlogMicroservice/DeleteBlog"
+	BlogMicroservice_BlockBlog_FullMethodName          = "/server.BlogMicroservice/BlockBlog"
 	BlogMicroservice_CreateComment_FullMethodName      = "/server.BlogMicroservice/CreateComment"
 	BlogMicroservice_UpdateComment_FullMethodName      = "/server.BlogMicroservice/UpdateComment"
 	BlogMicroservice_DeleteComment_FullMethodName      = "/server.BlogMicroservice/DeleteComment"
 	BlogMicroservice_GetAllComments_FullMethodName     = "/server.BlogMicroservice/GetAllComments"
 	BlogMicroservice_GetAllBlogComments_FullMethodName = "/server.BlogMicroservice/GetAllBlogComments"
+	BlogMicroservice_CreateReport_FullMethodName       = "/server.BlogMicroservice/CreateReport"
+	BlogMicroservice_FindReportsByBlog_FullMethodName  = "/server.BlogMicroservice/FindReportsByBlog"
 )
 
 // BlogMicroserviceClient is the client API for BlogMicroservice service.
@@ -34,11 +41,18 @@ const (
 type BlogMicroserviceClient interface {
 	FindBlogById(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*BlogResponse, error)
 	CreateBlog(ctx context.Context, in *BlogCreationRequest, opts ...grpc.CallOption) (*StringMessage, error)
+	FindBlogsByType(ctx context.Context, in *TypeRequest, opts ...grpc.CallOption) (*BlogListResponse, error)
+	FindPublishedBlogs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BlogListResponse, error)
+	FindBlogsByAuthor(ctx context.Context, in *AuthorIdRequest, opts ...grpc.CallOption) (*BlogListResponse, error)
+	DeleteBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*StringMessage, error)
+	BlockBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*StringMessage, error)
 	CreateComment(ctx context.Context, in *CommentCreationRequest, opts ...grpc.CallOption) (*CommentResponse, error)
 	UpdateComment(ctx context.Context, in *CommentUpdateRequest, opts ...grpc.CallOption) (*StringMessage, error)
 	DeleteComment(ctx context.Context, in *CommentIdRequest, opts ...grpc.CallOption) (*StringMessage, error)
 	GetAllComments(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CommentListResponse, error)
 	GetAllBlogComments(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*CommentListResponse, error)
+	CreateReport(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*StringMessage, error)
+	FindReportsByBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*ReportListResponse, error)
 }
 
 type blogMicroserviceClient struct {
@@ -61,6 +75,51 @@ func (c *blogMicroserviceClient) FindBlogById(ctx context.Context, in *BlogIdReq
 func (c *blogMicroserviceClient) CreateBlog(ctx context.Context, in *BlogCreationRequest, opts ...grpc.CallOption) (*StringMessage, error) {
 	out := new(StringMessage)
 	err := c.cc.Invoke(ctx, BlogMicroservice_CreateBlog_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) FindBlogsByType(ctx context.Context, in *TypeRequest, opts ...grpc.CallOption) (*BlogListResponse, error) {
+	out := new(BlogListResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_FindBlogsByType_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) FindPublishedBlogs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BlogListResponse, error) {
+	out := new(BlogListResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_FindPublishedBlogs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) FindBlogsByAuthor(ctx context.Context, in *AuthorIdRequest, opts ...grpc.CallOption) (*BlogListResponse, error) {
+	out := new(BlogListResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_FindBlogsByAuthor_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) DeleteBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*StringMessage, error) {
+	out := new(StringMessage)
+	err := c.cc.Invoke(ctx, BlogMicroservice_DeleteBlog_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) BlockBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*StringMessage, error) {
+	out := new(StringMessage)
+	err := c.cc.Invoke(ctx, BlogMicroservice_BlockBlog_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,17 +171,42 @@ func (c *blogMicroserviceClient) GetAllBlogComments(ctx context.Context, in *Blo
 	return out, nil
 }
 
+func (c *blogMicroserviceClient) CreateReport(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*StringMessage, error) {
+	out := new(StringMessage)
+	err := c.cc.Invoke(ctx, BlogMicroservice_CreateReport_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogMicroserviceClient) FindReportsByBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*ReportListResponse, error) {
+	out := new(ReportListResponse)
+	err := c.cc.Invoke(ctx, BlogMicroservice_FindReportsByBlog_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogMicroserviceServer is the server API for BlogMicroservice service.
 // All implementations must embed UnimplementedBlogMicroserviceServer
 // for forward compatibility
 type BlogMicroserviceServer interface {
 	FindBlogById(context.Context, *BlogIdRequest) (*BlogResponse, error)
 	CreateBlog(context.Context, *BlogCreationRequest) (*StringMessage, error)
+	FindBlogsByType(context.Context, *TypeRequest) (*BlogListResponse, error)
+	FindPublishedBlogs(context.Context, *Empty) (*BlogListResponse, error)
+	FindBlogsByAuthor(context.Context, *AuthorIdRequest) (*BlogListResponse, error)
+	DeleteBlog(context.Context, *BlogIdRequest) (*StringMessage, error)
+	BlockBlog(context.Context, *BlogIdRequest) (*StringMessage, error)
 	CreateComment(context.Context, *CommentCreationRequest) (*CommentResponse, error)
 	UpdateComment(context.Context, *CommentUpdateRequest) (*StringMessage, error)
 	DeleteComment(context.Context, *CommentIdRequest) (*StringMessage, error)
 	GetAllComments(context.Context, *Empty) (*CommentListResponse, error)
 	GetAllBlogComments(context.Context, *BlogIdRequest) (*CommentListResponse, error)
+	CreateReport(context.Context, *ReportRequest) (*StringMessage, error)
+	FindReportsByBlog(context.Context, *BlogIdRequest) (*ReportListResponse, error)
 	mustEmbedUnimplementedBlogMicroserviceServer()
 }
 
@@ -135,6 +219,21 @@ func (UnimplementedBlogMicroserviceServer) FindBlogById(context.Context, *BlogId
 }
 func (UnimplementedBlogMicroserviceServer) CreateBlog(context.Context, *BlogCreationRequest) (*StringMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBlog not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) FindBlogsByType(context.Context, *TypeRequest) (*BlogListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindBlogsByType not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) FindPublishedBlogs(context.Context, *Empty) (*BlogListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindPublishedBlogs not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) FindBlogsByAuthor(context.Context, *AuthorIdRequest) (*BlogListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindBlogsByAuthor not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) DeleteBlog(context.Context, *BlogIdRequest) (*StringMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlog not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) BlockBlog(context.Context, *BlogIdRequest) (*StringMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockBlog not implemented")
 }
 func (UnimplementedBlogMicroserviceServer) CreateComment(context.Context, *CommentCreationRequest) (*CommentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
@@ -150,6 +249,12 @@ func (UnimplementedBlogMicroserviceServer) GetAllComments(context.Context, *Empt
 }
 func (UnimplementedBlogMicroserviceServer) GetAllBlogComments(context.Context, *BlogIdRequest) (*CommentListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllBlogComments not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) CreateReport(context.Context, *ReportRequest) (*StringMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateReport not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) FindReportsByBlog(context.Context, *BlogIdRequest) (*ReportListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindReportsByBlog not implemented")
 }
 func (UnimplementedBlogMicroserviceServer) mustEmbedUnimplementedBlogMicroserviceServer() {}
 
@@ -196,6 +301,96 @@ func _BlogMicroservice_CreateBlog_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlogMicroserviceServer).CreateBlog(ctx, req.(*BlogCreationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_FindBlogsByType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).FindBlogsByType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_FindBlogsByType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).FindBlogsByType(ctx, req.(*TypeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_FindPublishedBlogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).FindPublishedBlogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_FindPublishedBlogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).FindPublishedBlogs(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_FindBlogsByAuthor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).FindBlogsByAuthor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_FindBlogsByAuthor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).FindBlogsByAuthor(ctx, req.(*AuthorIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_DeleteBlog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlogIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).DeleteBlog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_DeleteBlog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).DeleteBlog(ctx, req.(*BlogIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_BlockBlog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlogIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).BlockBlog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_BlockBlog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).BlockBlog(ctx, req.(*BlogIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -290,6 +485,42 @@ func _BlogMicroservice_GetAllBlogComments_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogMicroservice_CreateReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).CreateReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_CreateReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).CreateReport(ctx, req.(*ReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogMicroservice_FindReportsByBlog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlogIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).FindReportsByBlog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_FindReportsByBlog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).FindReportsByBlog(ctx, req.(*BlogIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogMicroservice_ServiceDesc is the grpc.ServiceDesc for BlogMicroservice service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +535,26 @@ var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateBlog",
 			Handler:    _BlogMicroservice_CreateBlog_Handler,
+		},
+		{
+			MethodName: "FindBlogsByType",
+			Handler:    _BlogMicroservice_FindBlogsByType_Handler,
+		},
+		{
+			MethodName: "FindPublishedBlogs",
+			Handler:    _BlogMicroservice_FindPublishedBlogs_Handler,
+		},
+		{
+			MethodName: "FindBlogsByAuthor",
+			Handler:    _BlogMicroservice_FindBlogsByAuthor_Handler,
+		},
+		{
+			MethodName: "DeleteBlog",
+			Handler:    _BlogMicroservice_DeleteBlog_Handler,
+		},
+		{
+			MethodName: "BlockBlog",
+			Handler:    _BlogMicroservice_BlockBlog_Handler,
 		},
 		{
 			MethodName: "CreateComment",
@@ -324,6 +575,14 @@ var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllBlogComments",
 			Handler:    _BlogMicroservice_GetAllBlogComments_Handler,
+		},
+		{
+			MethodName: "CreateReport",
+			Handler:    _BlogMicroservice_CreateReport_Handler,
+		},
+		{
+			MethodName: "FindReportsByBlog",
+			Handler:    _BlogMicroservice_FindReportsByBlog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

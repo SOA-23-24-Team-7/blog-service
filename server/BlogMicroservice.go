@@ -66,6 +66,184 @@ func (s *BlogMicroservice) FindBlogById(ctx context.Context, req *BlogIdRequest)
 	}, err
 }
 
+func (s *BlogMicroservice) FindBlogsByType(ctx context.Context, req *TypeRequest) (*BlogListResponse, error) {
+	topicType, _ := model.ParseBlogTopicType(req.Type)
+	blogsByTopic, err := s.BlogService.GetBlogsByTopic(topicType)
+
+	var blogs []*BlogResponse
+	for _, b := range blogsByTopic {
+
+		var comments []*CommentResponse
+		for _, c := range b.Comments {
+			comments = append(comments, &CommentResponse{
+				Id:        int32(c.Id),
+				AuthorId:  c.AuthorId,
+				BlogId:    c.BlogId,
+				CreatedAt: timestamppb.New(c.CreatedAt),
+				UpdatedAt: timestamppb.New(c.UpdatedAt),
+				Text:      c.Text,
+			})
+		}
+		if comments == nil {
+			comments = []*CommentResponse{}
+		}
+
+		var votes []*VoteResponse
+		for _, v := range b.Votes {
+			votes = append(votes, &VoteResponse{
+				Id:       int32(v.Id),
+				UserId:   v.UserId,
+				BlogId:   v.BlogId,
+				VoteType: string(v.VoteType),
+			})
+		}
+		if votes == nil {
+			votes = []*VoteResponse{}
+		}
+
+		blogs = append(blogs, &BlogResponse{
+			Id:            int32(b.Id),
+			Title:         b.Title,
+			Description:   b.Description,
+			Date:          timestamppb.New(b.Date),
+			Status:        string(b.Status),
+			AuthorId:      b.AuthorId,
+			Comments:      comments,
+			Votes:         votes,
+			Visibility:    string(b.Visibility),
+			VoteCount:     b.VoteCount,
+			UpvoteCount:   b.UpvoteCount,
+			DownvoteCount: b.DownvoteCount,
+			BlogTopic:     string(b.BlogTopic),
+		})
+	}
+	if blogs == nil {
+		blogs = []*BlogResponse{}
+	}
+
+	return &BlogListResponse{
+		Blogs: blogs,
+	}, err
+}
+
+func (s *BlogMicroservice) FindPublishedBlogs(ctx context.Context, req *Empty) (*BlogListResponse, error) {
+	blogsByTopic, err := s.BlogService.FindAllPublished()
+
+	var blogs []*BlogResponse
+	for _, b := range blogsByTopic {
+
+		var comments []*CommentResponse
+		for _, c := range b.Comments {
+			comments = append(comments, &CommentResponse{
+				Id:        int32(c.Id),
+				AuthorId:  c.AuthorId,
+				BlogId:    c.BlogId,
+				CreatedAt: timestamppb.New(c.CreatedAt),
+				UpdatedAt: timestamppb.New(c.UpdatedAt),
+				Text:      c.Text,
+			})
+		}
+		if comments == nil {
+			comments = []*CommentResponse{}
+		}
+
+		var votes []*VoteResponse
+		for _, v := range b.Votes {
+			votes = append(votes, &VoteResponse{
+				Id:       int32(v.Id),
+				UserId:   v.UserId,
+				BlogId:   v.BlogId,
+				VoteType: string(v.VoteType),
+			})
+		}
+		if votes == nil {
+			votes = []*VoteResponse{}
+		}
+
+		blogs = append(blogs, &BlogResponse{
+			Id:            int32(b.Id),
+			Title:         b.Title,
+			Description:   b.Description,
+			Date:          timestamppb.New(b.Date),
+			Status:        string(b.Status),
+			AuthorId:      b.AuthorId,
+			Comments:      comments,
+			Votes:         votes,
+			Visibility:    string(b.Visibility),
+			VoteCount:     b.VoteCount,
+			UpvoteCount:   b.UpvoteCount,
+			DownvoteCount: b.DownvoteCount,
+			BlogTopic:     string(b.BlogTopic),
+		})
+	}
+	if blogs == nil {
+		blogs = []*BlogResponse{}
+	}
+
+	return &BlogListResponse{
+		Blogs: blogs,
+	}, err
+}
+
+func (s *BlogMicroservice) FindBlogsByAuthor(ctx context.Context, req *AuthorIdRequest) (*BlogListResponse, error) {
+	blogsByTopic, err := s.BlogService.FindAllByAuthor(req.Id)
+
+	var blogs []*BlogResponse
+	for _, b := range blogsByTopic {
+
+		var comments []*CommentResponse
+		for _, c := range b.Comments {
+			comments = append(comments, &CommentResponse{
+				Id:        int32(c.Id),
+				AuthorId:  c.AuthorId,
+				BlogId:    c.BlogId,
+				CreatedAt: timestamppb.New(c.CreatedAt),
+				UpdatedAt: timestamppb.New(c.UpdatedAt),
+				Text:      c.Text,
+			})
+		}
+		if comments == nil {
+			comments = []*CommentResponse{}
+		}
+
+		var votes []*VoteResponse
+		for _, v := range b.Votes {
+			votes = append(votes, &VoteResponse{
+				Id:       int32(v.Id),
+				UserId:   v.UserId,
+				BlogId:   v.BlogId,
+				VoteType: string(v.VoteType),
+			})
+		}
+		if votes == nil {
+			votes = []*VoteResponse{}
+		}
+
+		blogs = append(blogs, &BlogResponse{
+			Id:            int32(b.Id),
+			Title:         b.Title,
+			Description:   b.Description,
+			Date:          timestamppb.New(b.Date),
+			Status:        string(b.Status),
+			AuthorId:      b.AuthorId,
+			Comments:      comments,
+			Votes:         votes,
+			Visibility:    string(b.Visibility),
+			VoteCount:     b.VoteCount,
+			UpvoteCount:   b.UpvoteCount,
+			DownvoteCount: b.DownvoteCount,
+			BlogTopic:     string(b.BlogTopic),
+		})
+	}
+	if blogs == nil {
+		blogs = []*BlogResponse{}
+	}
+
+	return &BlogListResponse{
+		Blogs: blogs,
+	}, err
+}
+
 func (s *BlogMicroservice) CreateBlog(ctx context.Context, in *BlogCreationRequest) (*StringMessage, error) {
 	blog := &model.Blog{
 		Title:       in.Title,
@@ -85,6 +263,35 @@ func (s *BlogMicroservice) CreateBlog(ctx context.Context, in *BlogCreationReque
 	message := &StringMessage{Message: "Successfully created blog"}
 	return message, err
 }
+
+func (s *BlogMicroservice) DeleteBlog(ctx context.Context, in *BlogIdRequest) (*StringMessage, error) {
+
+	err := s.BlogService.Delete(in.Id)
+
+	if err != nil {
+		fmt.Println("Error while deleting a blog:", err)
+		message := &StringMessage{Message: "Error while deleting a blog"}
+		return message, err
+	}
+
+	message := &StringMessage{Message: "Successfully deleted a blog"}
+	return message, err
+}
+
+func (s *BlogMicroservice) BlockBlog(ctx context.Context, in *BlogIdRequest) (*StringMessage, error) {
+
+	err := s.BlogService.Block(in.Id)
+
+	if err != nil {
+		fmt.Println("Error while blocking a blog:", err)
+		message := &StringMessage{Message: "Error while blocking a blog"}
+		return message, err
+	}
+
+	message := &StringMessage{Message: "Successfully blocked a blog"}
+	return message, err
+}
+
 func (s *BlogMicroservice) CreateComment(ctx context.Context, in *CommentCreationRequest) (*CommentResponse, error) {
 
 	comment := dto.CommentRequestDTO{
@@ -169,4 +376,45 @@ func (s *BlogMicroservice) GetAllBlogComments(ctx context.Context, in *BlogIdReq
 		})
 	}
 	return &CommentListResponse{Comments: response}, nil
+}
+
+func (s *BlogMicroservice) CreateReport(ctx context.Context, in *ReportRequest) (*StringMessage, error) {
+	report := &model.Report{
+		BlogId: int(in.BlogId),
+		UserId: int(in.UserId),
+		Reason: in.Reason,
+	}
+
+	err := s.ReportService.Create(report)
+
+	if err != nil {
+		fmt.Println("Error while creating a new report:", err)
+		message := &StringMessage{Message: "Error while creating report"}
+		return message, err
+	}
+
+	message := &StringMessage{Message: "Successfully created report"}
+	return message, err
+}
+
+func (s *BlogMicroservice) FindReportsByBlog(ctx context.Context, req *BlogIdRequest) (*ReportListResponse, error) {
+	reportsByBlog, err := s.ReportService.FindAllByBlog(req.Id)
+
+	var reports []*ReportResponse
+	for _, r := range reportsByBlog {
+
+		reports = append(reports, &ReportResponse{
+			Id:     int64(r.Id),
+			UserId: int64(r.UserId),
+			BlogId: int64(r.BlogId),
+			Reason: r.Reason,
+		})
+	}
+	if reports == nil {
+		reports = []*ReportResponse{}
+	}
+
+	return &ReportListResponse{
+		Reports: reports,
+	}, err
 }

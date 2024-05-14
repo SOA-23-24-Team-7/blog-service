@@ -9,9 +9,9 @@ type ReportService struct {
 	ReportRepository *repository.ReportRepository
 }
 
-func (service *ReportService) FindAllByBlog(id int64) (*[]model.Report, error) {
+func (service *ReportService) FindAllByBlog(id int64) ([]model.Report, error) {
 	reports, _ := service.ReportRepository.FindAllByBlog(id)
-	return &reports, nil
+	return reports, nil
 }
 
 func (service *ReportService) Create(report *model.Report) error {

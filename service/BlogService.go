@@ -24,9 +24,9 @@ func (service *BlogService) FindAllPublished() ([]model.Blog, error) {
 	return blogs, nil
 }
 
-func (service *BlogService) FindAllByAuthor(id int64) (*[]model.Blog, error) {
+func (service *BlogService) FindAllByAuthor(id int64) ([]model.Blog, error) {
 	blogs, _ := service.BlogRepository.FindAllByAuthor(id)
-	return &blogs, nil
+	return blogs, nil
 }
 
 func (service *BlogService) Create(blog *model.Blog) error {

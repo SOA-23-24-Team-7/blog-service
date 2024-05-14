@@ -66,14 +66,14 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 	/*router := mux.NewRouter().StrictSlash(true)
 
 	// Blog routes
-	router.HandleFunc("/blogs/type/{type}", blogController.FindAllWithType).Methods("GET")
-	router.HandleFunc("/blogs", blogController.Create).Methods("POST")
-	router.HandleFunc("/blogs/author/{id}", blogController.FindAllByAuthor).Methods("GET")
-	router.HandleFunc("/blogs/published", blogController.FindAllPublished).Methods("GET")
-	router.HandleFunc("/blogs/{id}", blogController.FindById).Methods("GET")
-	router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
-	router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
-	router.HandleFunc("/blogs/{id}", blogController.Block).Methods("PATCH")
+	1router.HandleFunc("/blogs/type/{type}", blogController.FindAllWithType).Methods("GET")
+	1router.HandleFunc("/blogs", blogController.Create).Methods("POST")
+	1router.HandleFunc("/blogs/author/{id}", blogController.FindAllByAuthor).Methods("GET")
+	1router.HandleFunc("/blogs/published", blogController.FindAllPublished).Methods("GET")
+	1router.HandleFunc("/blogs/{id}", blogController.FindById).Methods("GET")
+	1router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
+	1router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
+	1router.HandleFunc("/blogs/{id}", blogController.Block).Methods("PATCH")
 
 	// Blog vote route
 	router.HandleFunc("/blogs/votes", blogController.Vote).Methods("POST")
@@ -86,8 +86,8 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 	router.HandleFunc("/blogComments/{id}", commentController.GetAllBlogComments).Methods("GET")
 
 	// // Report routes
-	router.HandleFunc("/reports", reportController.Create).Methods("POST")
-	router.HandleFunc("/reports/{id}", reportController.FindAllByBlog).Methods("GET")
+	1router.HandleFunc("/reports", reportController.Create).Methods("POST")
+	1router.HandleFunc("/reports/{id}", reportController.FindAllByBlog).Methods("GET")
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 
