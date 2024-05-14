@@ -46,7 +46,7 @@ func initDB() *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://blog-database:27017"))
 	if err != nil {
 		return nil
 	}
@@ -93,7 +93,7 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 
 	println("Server starting")
 
-	log.Fatal(http.ListenAndServe(":8088", router))*/
+	log.Fatal(http.ListenAndServe(":8090", router))*/
 
 	//-----------------------------
 
@@ -107,12 +107,12 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 		ReportService:  reportService,
 	})
 
-	listener, err := net.Listen("tcp", ":8088")
+	listener, err := net.Listen("tcp", ":8090")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	log.Println("gRPC server listening on port :8088")
+	log.Println("gRPC server listening on port :8090")
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve gRPC server: %v", err)
 	}
