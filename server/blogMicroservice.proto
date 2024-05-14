@@ -21,6 +21,7 @@ service BlogMicroservice {
     rpc GetAllBlogComments(BlogIdRequest) returns (CommentListResponse) {}
     rpc CreateReport(ReportRequest) returns (StringMessage) {}
     rpc FindReportsByBlog(BlogIdRequest) returns (ReportListResponse) {}
+    rpc Vote(VoteRequest) returns (StringMessage) {}
 }
 
 message Empty {
@@ -120,4 +121,10 @@ message ReportResponse {
 
 message ReportListResponse {
     repeated ReportResponse reports = 1;
+}
+
+message VoteRequest {
+    int64 user_id = 1;
+    int64 blog_id = 2;
+    string vote_type = 3;
 }

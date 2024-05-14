@@ -33,6 +33,7 @@ const (
 	BlogMicroservice_GetAllBlogComments_FullMethodName = "/server.BlogMicroservice/GetAllBlogComments"
 	BlogMicroservice_CreateReport_FullMethodName       = "/server.BlogMicroservice/CreateReport"
 	BlogMicroservice_FindReportsByBlog_FullMethodName  = "/server.BlogMicroservice/FindReportsByBlog"
+	BlogMicroservice_Vote_FullMethodName               = "/server.BlogMicroservice/Vote"
 )
 
 // BlogMicroserviceClient is the client API for BlogMicroservice service.
@@ -53,6 +54,7 @@ type BlogMicroserviceClient interface {
 	GetAllBlogComments(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*CommentListResponse, error)
 	CreateReport(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*StringMessage, error)
 	FindReportsByBlog(ctx context.Context, in *BlogIdRequest, opts ...grpc.CallOption) (*ReportListResponse, error)
+	Vote(ctx context.Context, in *VoteRequest, opts ...grpc.CallOption) (*StringMessage, error)
 }
 
 type blogMicroserviceClient struct {
@@ -189,6 +191,15 @@ func (c *blogMicroserviceClient) FindReportsByBlog(ctx context.Context, in *Blog
 	return out, nil
 }
 
+func (c *blogMicroserviceClient) Vote(ctx context.Context, in *VoteRequest, opts ...grpc.CallOption) (*StringMessage, error) {
+	out := new(StringMessage)
+	err := c.cc.Invoke(ctx, BlogMicroservice_Vote_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogMicroserviceServer is the server API for BlogMicroservice service.
 // All implementations must embed UnimplementedBlogMicroserviceServer
 // for forward compatibility
@@ -207,6 +218,7 @@ type BlogMicroserviceServer interface {
 	GetAllBlogComments(context.Context, *BlogIdRequest) (*CommentListResponse, error)
 	CreateReport(context.Context, *ReportRequest) (*StringMessage, error)
 	FindReportsByBlog(context.Context, *BlogIdRequest) (*ReportListResponse, error)
+	Vote(context.Context, *VoteRequest) (*StringMessage, error)
 	mustEmbedUnimplementedBlogMicroserviceServer()
 }
 
@@ -255,6 +267,9 @@ func (UnimplementedBlogMicroserviceServer) CreateReport(context.Context, *Report
 }
 func (UnimplementedBlogMicroserviceServer) FindReportsByBlog(context.Context, *BlogIdRequest) (*ReportListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindReportsByBlog not implemented")
+}
+func (UnimplementedBlogMicroserviceServer) Vote(context.Context, *VoteRequest) (*StringMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
 }
 func (UnimplementedBlogMicroserviceServer) mustEmbedUnimplementedBlogMicroserviceServer() {}
 
@@ -521,11 +536,29 @@ func _BlogMicroservice_FindReportsByBlog_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogMicroservice_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogMicroserviceServer).Vote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlogMicroservice_Vote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogMicroserviceServer).Vote(ctx, req.(*VoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogMicroservice_ServiceDesc is the grpc.ServiceDesc for BlogMicroservice service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "BlogMicroservice",
+	ServiceName: "server.BlogMicroservice",
 	HandlerType: (*BlogMicroserviceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -583,6 +616,10 @@ var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindReportsByBlog",
 			Handler:    _BlogMicroservice_FindReportsByBlog_Handler,
+		},
+		{
+			MethodName: "Vote",
+			Handler:    _BlogMicroservice_Vote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

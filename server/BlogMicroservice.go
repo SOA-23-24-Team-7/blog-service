@@ -418,3 +418,9 @@ func (s *BlogMicroservice) FindReportsByBlog(ctx context.Context, req *BlogIdReq
 		Reports: reports,
 	}, err
 }
+
+func (s *BlogMicroservice) Vote(ctx context.Context, in *VoteRequest) (*StringMessage, error) {
+	_, err := s.BlogService.SetVote(in.BlogId, in.UserId, model.ParseVoteType(in.VoteType))
+	message := &StringMessage{Message: "Successfully created voted"}
+	return message, err
+}

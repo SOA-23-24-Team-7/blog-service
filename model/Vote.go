@@ -34,3 +34,14 @@ func (v *Vote) Validate() error {
 
 	return nil
 }
+
+func ParseVoteType(vote string) VoteType {
+	switch vote {
+	case string(Downvote):
+		return Downvote
+	case string(Upvote):
+		return Upvote
+	default:
+		return Upvote
+	}
+}
