@@ -558,7 +558,7 @@ func _BlogMicroservice_Vote_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BlogMicroservice_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "server.BlogMicroservice",
+	ServiceName: "BlogMicroservice",
 	HandlerType: (*BlogMicroserviceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
