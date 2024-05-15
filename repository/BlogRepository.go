@@ -4,6 +4,7 @@ import (
 	"BlogApplication/model"
 	"context"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -137,6 +138,7 @@ func (repository *BlogRepository) FindAllByTopic(topicType model.BlogTopicType) 
 
 func (repository *BlogRepository) Create(blog *model.Blog) error {
 	blog.Id = repository.NextId()
+	blog.Date = time.Now();
 	_, err := repository.Collection.InsertOne(context.Background(), blog)
 	if err != nil {
 		return err

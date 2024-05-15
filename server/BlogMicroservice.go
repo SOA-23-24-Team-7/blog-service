@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -250,6 +251,7 @@ func (s *BlogMicroservice) CreateBlog(ctx context.Context, in *BlogCreationReque
 		Description: in.Description,
 		AuthorId:    in.AuthorId,
 		BlogTopic:   model.BlogTopicType(in.BlogTopic),
+		Date: time.Now(),
 	}
 
 	err := s.BlogService.Create(blog)

@@ -107,12 +107,12 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 		ReportService:  reportService,
 	})
 
-	listener, err := net.Listen("tcp", ":8090")
+	listener, err := net.Listen("tcp", ":8088")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	log.Println("gRPC server listening on port :8090")
+	log.Println("gRPC server listening on port :8088")
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve gRPC server: %v", err)
 	}
