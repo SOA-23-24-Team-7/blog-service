@@ -17,6 +17,12 @@ import (
 	"google.golang.org/grpc"
 
 	"google.golang.org/grpc/reflection"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 // func initDB() *gorm.DB {
@@ -60,6 +66,32 @@ func initDB() *mongo.Client {
 	println("Connected to MongoDB!")
 
 	return client
+}
+
+func initTracer() (func(context.Context) error, error) {
+
+	jaegerExporter, err := otlptracehttp.New(context.Background(), otlptracehttp.WithEndpoint("jaeger:4318"), otlptracehttp.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := resource.New(
+		context.Background(),
+		resource.WithAttributes(
+			attribute.String("service.name", "blog-service"),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(jaegerExporter),
+		sdktrace.WithResource(res),
+	)
+
+	otel.SetTracerProvider(tp)
+	return tp.Shutdown, nil
 }
 
 func startServer(blogService *service.BlogService, commentService *service.CommentService, reportService *service.ReportService /*blogController *controller.BlogController, commentController *controller.CommentController, reportController *controller.ReportController*/) {
@@ -125,6 +157,12 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
+
+	shutdown, err := initTracer()
+	if err != nil {
+		log.Fatalf("FAILED TO INITIALIZE TRACER: %v", err)
+	}
+	defer shutdown(context.Background())
 
 	blogRepository := repository.NewBlogRepository(client)
 	blogService := &service.BlogService{BlogRepository: blogRepository}
