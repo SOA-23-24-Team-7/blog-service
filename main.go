@@ -1,16 +1,17 @@
 package main
 
 import (
-	//"BlogApplication/controller"
 	"BlogApplication/repository"
 	"BlogApplication/server"
 	"BlogApplication/service"
+	"encoding/json"
 	"log"
 	"net"
 
 	"context"
 	"time"
 
+	"github.com/nats-io/nats.go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -24,29 +25,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
-
-// func initDB() *gorm.DB {
-
-// 	dsn := "user=postgres password=super dbname=soa-blog host=blog-database port=5432 sslmode=disable"
-// 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
-// 	if err != nil {
-// 		print(err)
-// 		return nil
-// 	}
-
-// 	database.AutoMigrate(&model.Blog{})
-// 	database.AutoMigrate(&model.Comment{})
-// 	database.AutoMigrate(&model.Vote{})
-// 	database.AutoMigrate(&model.Report{})
-
-// 	err = database.AutoMigrate(&model.Blog{}, &model.Comment{}, &model.Vote{}, &model.Report{})
-// 	if err != nil {
-// 		log.Fatalf("Error migrating models: %v", err)
-// 	}
-
-// 	return database
-// }
 
 func initDB() *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -94,50 +72,19 @@ func initTracer() (func(context.Context) error, error) {
 	return tp.Shutdown, nil
 }
 
-func startServer(blogService *service.BlogService, commentService *service.CommentService, reportService *service.ReportService /*blogController *controller.BlogController, commentController *controller.CommentController, reportController *controller.ReportController*/) {
-	/*router := mux.NewRouter().StrictSlash(true)
-
-	// Blog routes
-	1router.HandleFunc("/blogs/type/{type}", blogController.FindAllWithType).Methods("GET")
-	1router.HandleFunc("/blogs", blogController.Create).Methods("POST")
-	1router.HandleFunc("/blogs/author/{id}", blogController.FindAllByAuthor).Methods("GET")
-	1router.HandleFunc("/blogs/published", blogController.FindAllPublished).Methods("GET")
-	1router.HandleFunc("/blogs/{id}", blogController.FindById).Methods("GET")
-	1router.HandleFunc("/blogs/{id}", blogController.Update).Methods("PUT")
-	1router.HandleFunc("/blogs/{id}", blogController.Delete).Methods("DELETE")
-	1router.HandleFunc("/blogs/{id}", blogController.Block).Methods("PATCH")
-
-	// Blog vote route
-	router.HandleFunc("/blogs/votes", blogController.Vote).Methods("POST")
-
-	// Comment routes
-	router.HandleFunc("/comments", commentController.Create).Methods("POST")
-	router.HandleFunc("/comments/{id}", commentController.Update).Methods("PUT")
-	router.HandleFunc("/comments/{id}", commentController.Delete).Methods("DELETE")
-	router.HandleFunc("/comments", commentController.GetAll).Methods("GET")
-	router.HandleFunc("/blogComments/{id}", commentController.GetAllBlogComments).Methods("GET")
-
-	// // Report routes
-	1router.HandleFunc("/reports", reportController.Create).Methods("POST")
-	1router.HandleFunc("/reports/{id}", reportController.FindAllByBlog).Methods("GET")
-
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
-
-	println("Server starting")
-
-	log.Fatal(http.ListenAndServe(":8090", router))*/
-
-	//-----------------------------
+func startServer(blogService *service.BlogService, commentService *service.CommentService, reportService *service.ReportService, natsConn *nats.Conn) {
 
 	grpcServer := grpc.NewServer()
 
 	reflection.Register(grpcServer)
-
-	server.RegisterBlogMicroserviceServer(grpcServer, &server.BlogMicroservice{
+	blogMicroservice := &server.BlogMicroservice{
 		BlogService:    blogService,
 		CommentService: commentService,
 		ReportService:  reportService,
-	})
+		NatsConn:       natsConn,
+	}
+
+	server.RegisterBlogMicroserviceServer(grpcServer, blogMicroservice)
 
 	listener, err := net.Listen("tcp", ":8088")
 	if err != nil {
@@ -150,37 +97,55 @@ func startServer(blogService *service.BlogService, commentService *service.Comme
 	}
 
 }
+func Conn() *nats.Conn {
+	conn, err := nats.Connect("nats://nats:4222")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return conn
+}
+func handleRollback(nc *nats.Conn, commentService *service.CommentService) {
+	nc.Subscribe("comment.creation.rollback", func(m *nats.Msg) {
+		var event struct {
+			CommentID int `json:"comment_id"`
+		}
+		json.Unmarshal(m.Data, &event)
 
+		// Delete the comment
+		err := commentService.Delete(context.Background(), int64(event.CommentID))
+		if err != nil {
+			log.Printf("Failed to rollback comment creation: %v", err)
+		} else {
+			log.Printf("Successfully rolled back comment creation with ID: %d", event.CommentID)
+		}
+	})
+}
 func main() {
 	client := initDB()
 	if client == nil {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-
 	shutdown, err := initTracer()
 	if err != nil {
 		log.Fatalf("FAILED TO INITIALIZE TRACER: %v", err)
 	}
 	defer shutdown(context.Background())
 
+	conn := Conn()
+	defer conn.Close()
+
 	blogRepository := repository.NewBlogRepository(client)
 	blogService := &service.BlogService{BlogRepository: blogRepository}
-	//blogController := &controller.BlogController{BlogService: blogService}
 
 	commentRepository := repository.NewCommentRepository(client)
 	commentService := &service.CommentService{CommentRepo: commentRepository}
-	//commentController := &controller.CommentController{CommentService: commentService}
 
 	reportRepository := repository.NewReportRepository(client)
 	reportService := &service.ReportService{ReportRepository: reportRepository}
-	//reportController := &controller.ReportController{ReportService: reportService}
 
-	// voteRepository := &repository.VoteRepository{DatabaseConnection: database}
-	// voteService := &service.VoteService{VoteRepo: voteRepository}
-	// voteController := &controller.VoteController{VoteService: voteService}
-
-	startServer(blogService, commentService, reportService /*blogController, commentController, reportController*/)
+	handleRollback(conn, commentService)
+	startServer(blogService, commentService, reportService, conn)
 
 	select {}
 }

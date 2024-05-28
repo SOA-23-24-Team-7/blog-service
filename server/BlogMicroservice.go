@@ -10,6 +10,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/nats-io/nats.go"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -22,6 +23,7 @@ type BlogMicroservice struct {
 	BlogService    *service.BlogService
 	CommentService *service.CommentService
 	ReportService  *service.ReportService
+	NatsConn       *nats.Conn
 }
 
 func (s *BlogMicroservice) FindBlogById(ctx context.Context, req *BlogIdRequest) (*BlogResponse, error) {
@@ -391,6 +393,43 @@ func (s *BlogMicroservice) BlockBlog(ctx context.Context, req *BlogIdRequest) (*
 	return message, err
 }
 
+// func (s *BlogMicroservice) CreateComment(ctx context.Context, req *CommentCreationRequest) (*CommentResponse, error) {
+// 	tracer := otel.Tracer("controller")
+// 	ctx, span := tracer.Start(ctx, "CreateComment")
+// 	defer span.End()
+
+// 	reqData, err := json.Marshal(req)
+// 	if err != nil {
+// 		span.RecordError(err)
+// 		span.SetStatus(codes.Error, "Failed to marshal request data")
+// 		return nil, err
+// 	}
+// 	span.SetAttributes(attribute.String("request.data", string(reqData)))
+
+// 	comment := dto.CommentRequestDTO{
+// 		AuthorId:  req.AuthorId,
+// 		BlogId:    req.BlogId,
+// 		CreatedAt: req.CreatedAt.AsTime(),
+// 		Text:      req.Text,
+// 	}
+// 	createdComment, err := s.CommentService.Create(ctx, &comment)
+// 	if err != nil {
+// 		log.Printf("Error creating comment: %v", err)
+// 		span.SetStatus(codes.Error, "CreateComment failed")
+// 		return nil, err
+// 	}
+
+// 	span.SetStatus(codes.Ok, "CreateComment successful")
+// 	return &CommentResponse{
+// 		Id:        int32(createdComment.Id),
+// 		AuthorId:  int64(createdComment.AuthorId),
+// 		BlogId:    int64(createdComment.BlogId),
+// 		CreatedAt: timestamppb.New(createdComment.CreatedAt),
+// 		UpdatedAt: timestamppb.New(createdComment.UpdatedAt),
+// 		Text:      createdComment.Text,
+// 	}, err
+// }
+
 func (s *BlogMicroservice) CreateComment(ctx context.Context, req *CommentCreationRequest) (*CommentResponse, error) {
 	tracer := otel.Tracer("controller")
 	ctx, span := tracer.Start(ctx, "CreateComment")
@@ -416,6 +455,23 @@ func (s *BlogMicroservice) CreateComment(ctx context.Context, req *CommentCreati
 		span.SetStatus(codes.Error, "CreateComment failed")
 		return nil, err
 	}
+	blog, err := s.BlogService.Find(ctx, req.BlogId)
+
+	// Publish event to NATS
+	log.Printf("SENDING NATS REQ")
+	event := map[string]interface{}{
+		"user_id":    req.AuthorId,
+		"author_id":  blog.AuthorId,
+		"comment_id": createdComment.Id,
+	}
+	eventData, _ := json.Marshal(event)
+	err = s.NatsConn.Publish("comment.created", eventData)
+	if err != nil {
+		log.Printf("ERROR SENDING NATS REQ")
+		log.Printf("Error publishing event: %v", err)
+		span.SetStatus(codes.Error, "Event publication failed")
+		return nil, err
+	}
 
 	span.SetStatus(codes.Ok, "CreateComment successful")
 	return &CommentResponse{
@@ -427,6 +483,7 @@ func (s *BlogMicroservice) CreateComment(ctx context.Context, req *CommentCreati
 		Text:      createdComment.Text,
 	}, err
 }
+
 func (s *BlogMicroservice) UpdateComment(ctx context.Context, req *CommentUpdateRequest) (*StringMessage, error) {
 	tracer := otel.Tracer("controller")
 	ctx, span := tracer.Start(ctx, "UpdateComment")
